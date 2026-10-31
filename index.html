@@ -537,7 +537,7 @@ function renderTasks(){
 }
 function renderBig(){
   var avg=overallAvg(),n=S.courses.filter(function(c){return courseAvg(c.id)!=null}).length;
-  var num=avg==null?"—":(S.scale===10?(avg/10).toFixed(1):String(Math.round(avg)));
+  var num=avg==null?"—":(S.scale===10?(avg/10).toFixed(2):avg.toFixed(1));
   var unit=avg!=null&&S.scale!==10?"<small>%</small>":"";
   var sub=avg==null?"Add grades to see your average.":"Average of "+n+(n===1?" course":" courses")+(S.scale===10?", out of 10":"");
   $("#gBig").innerHTML='<div class="l">Overall average</div><div class="n">'+num+unit+'</div><div class="s">'+sub+'</div>';
