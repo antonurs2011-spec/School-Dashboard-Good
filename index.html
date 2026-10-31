@@ -427,7 +427,7 @@ async function flush(){
   }catch(e){ok=false;setStatus("Not saved. Retrying…",true)}
   var pushed=true,pushErr="";
   if(ok&&sync&&!ref){
-    if(Date.now()<syncPause){pushed=false;pushErr="waiting for GitHub"}
+    if(Date.now()<syncPause){pushed=false;pushErr="waiting before retrying"}
     else{try{await ghPut(json)}catch(e){pushed=false;pushErr=e.message;syncPause=Math.max(syncPause,Date.now()+60000)}}
   }
   saving=false;
@@ -795,7 +795,7 @@ async function ghCreate(json){
 var stamp=function(){var d=new Date();return pad(d.getHours())+":"+pad(d.getMinutes())};
 async function pull(force){
   if(!sync||syncBusy||!loaded)return;
-  if(Date.now()<syncPause){if(force)setStatus("Sync paused: GitHub is limiting requests",true);return}
+  if(!force&&Date.now()<syncPause)return;
   if(!force&&Date.now()-lastPull<15000)return;
   lastPull=Date.now();
   syncBusy=true;
@@ -806,7 +806,7 @@ async function pull(force){
     }else if(lt>rt&&!saving){
       var json=JSON.stringify(S);await ghPut(json);lastSaved=json;lsWrite(json);setStatus("Synced "+stamp());
     }else if(!dirty&&!saving){setStatus("Synced "+stamp())}
-  }catch(e){syncPause=Math.max(syncPause,Date.now()+120000);setStatus("Sync problem: "+e.message,true)}
+  }catch(e){if(!force)syncPause=Math.max(syncPause,Date.now()+120000);setStatus("Sync problem: "+e.message,true)}
   syncBusy=false;
 }
 function renderSync(){
