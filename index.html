@@ -425,12 +425,15 @@ async function flush(){
     if(ref){await ref.set(JSON.parse(json))}else{lsWrite(json)}
     lastSaved=json;
   }catch(e){ok=false;setStatus("Not saved. Retrying…",true)}
-  var pushed=true;
-  if(ok&&sync&&!ref){try{await ghPut(json)}catch(e){pushed=false}}
+  var pushed=true,pushErr="";
+  if(ok&&sync&&!ref){
+    if(Date.now()<syncPause){pushed=false;pushErr="waiting for GitHub"}
+    else{try{await ghPut(json)}catch(e){pushed=false;pushErr=e.message;syncPause=Math.max(syncPause,Date.now()+60000)}}
+  }
   saving=false;
   var again=JSON.stringify(S)!==lastSaved;
   dirty=again;
-  if(ok&&!again)setStatus(ref?"Saved":(sync?(pushed?"Synced":"Saved here, not synced yet"):"Saved in this browser"),!pushed);
+  if(ok&&!again)setStatus(ref?"Saved":(sync?(pushed?"Synced":"Saved here, not synced yet"+(pushErr?" ("+pushErr+")":"")):"Saved in this browser"),!pushed);
   else{clearTimeout(saveTimer);saveTimer=setTimeout(flush,ok?300:4000)}
 }
 
@@ -752,13 +755,28 @@ $("#clearAll").addEventListener("click",function(e){
 });
 
 /* ---------- GitHub sync (private gist) ---------- */
-var SYNC_KEY="homeroom-sync",sync=null,syncBusy=false,GH="https://api.github.com";
+var SYNC_KEY="homeroom-sync",sync=null,syncBusy=false,syncPause=0,lastPull=0,GH="https://api.github.com";
+async function ghFail(r){
+  var msg="";try{msg=(await r.json()).message||""}catch(e){}
+  var reset=+r.headers.get("x-ratelimit-reset"),ra=+r.headers.get("retry-after");
+  if(r.status===403||r.status===429){
+    if(/rate limit|abuse|secondary/i.test(msg)||r.headers.get("x-ratelimit-remaining")==="0"||ra){
+      var wait=ra?ra*1000:(reset?Math.max(60000,reset*1000-Date.now()):300000);
+      wait=Math.min(wait,3600000);syncPause=Date.now()+wait;
+      return new Error("GitHub is limiting requests. Sync will retry in about "+Math.max(1,Math.round(wait/60000))+" min");
+    }
+    if(/not accessible by personal access token|fine-grained/i.test(msg))return new Error("this token type cannot use gists. Create a classic token with the gist permission");
+  }
+  if(r.status===401)return new Error("the token was refused (expired or deleted). Make a new one");
+  if(r.status===404)return new Error("gist not found. Check the Gist ID, and that the token belongs to the same GitHub account");
+  return new Error("GitHub answered "+r.status+(msg?": "+msg:""));
+}
 function syncLoad(){try{var v=JSON.parse(localStorage.getItem(SYNC_KEY));return v&&v.token&&v.gist?v:null}catch(e){return null}}
 function syncSave(){try{localStorage.setItem(SYNC_KEY,JSON.stringify(sync))}catch(e){}}
 function ghHeaders(json){var h={"Authorization":"Bearer "+sync.token,"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"};if(json)h["Content-Type"]="application/json";return h}
 async function ghGet(){
   var r=await fetch(GH+"/gists/"+sync.gist,{headers:ghHeaders(),cache:"no-store"});
-  if(!r.ok)throw new Error(r.status===401?"the token was refused":r.status===404?"gist not found":"GitHub answered "+r.status);
+  if(!r.ok)throw await ghFail(r);
   var j=await r.json(),f=j.files&&j.files["homeroom.json"];
   if(!f)throw new Error("homeroom.json is missing from that gist");
   var txt=f.content;
@@ -767,16 +785,19 @@ async function ghGet(){
 }
 async function ghPut(json){
   var r=await fetch(GH+"/gists/"+sync.gist,{method:"PATCH",headers:ghHeaders(true),body:JSON.stringify({files:{"homeroom.json":{content:json}}})});
-  if(!r.ok)throw new Error("GitHub answered "+r.status);
+  if(!r.ok)throw await ghFail(r);
 }
 async function ghCreate(json){
   var r=await fetch(GH+"/gists",{method:"POST",headers:ghHeaders(true),body:JSON.stringify({description:"Homeroom dashboard data",public:false,files:{"homeroom.json":{content:json}}})});
-  if(!r.ok)throw new Error(r.status===401?"the token was refused":r.status===403||r.status===404?"the token needs the gist permission":"GitHub answered "+r.status);
+  if(!r.ok)throw await ghFail(r);
   return (await r.json()).id;
 }
 var stamp=function(){var d=new Date();return pad(d.getHours())+":"+pad(d.getMinutes())};
-async function pull(){
+async function pull(force){
   if(!sync||syncBusy||!loaded)return;
+  if(Date.now()<syncPause){if(force)setStatus("Sync paused: GitHub is limiting requests",true);return}
+  if(!force&&Date.now()-lastPull<15000)return;
+  lastPull=Date.now();
   syncBusy=true;
   try{
     var rn=normalize(await ghGet()),rt=rn.updatedAt||"",lt=S.updatedAt||"";
@@ -785,7 +806,7 @@ async function pull(){
     }else if(lt>rt&&!saving){
       var json=JSON.stringify(S);await ghPut(json);lastSaved=json;lsWrite(json);setStatus("Synced "+stamp());
     }else if(!dirty&&!saving){setStatus("Synced "+stamp())}
-  }catch(e){setStatus("Sync problem: "+e.message,true)}
+  }catch(e){syncPause=Math.max(syncPause,Date.now()+120000);setStatus("Sync problem: "+e.message,true)}
   syncBusy=false;
 }
 function renderSync(){
@@ -815,13 +836,13 @@ $("#sConnect").addEventListener("click",async function(){
   }catch(err){sync=prev;msg.textContent="Could not connect: "+err.message+"."}
 });
 $("#sNow").addEventListener("click",async function(){
-  $("#syncMsg").textContent="Syncing…";await pull();$("#syncMsg").textContent=$("#status").textContent+".";
+  $("#syncMsg").textContent="Syncing…";await pull(true);$("#syncMsg").textContent=$("#status").textContent+".";
 });
 $("#sOff").addEventListener("click",function(){
   sync=null;try{localStorage.removeItem(SYNC_KEY)}catch(e){}
   renderSync();setStatus("Saved in this browser");$("#syncMsg").textContent="Disconnected. Your data stays in this browser.";
 });
-setInterval(function(){pull()},60000);
+setInterval(function(){if(!document.hidden)pull()},60000);
 document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")pull()});
 window.addEventListener("focus",function(){pull()});
 
