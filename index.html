@@ -150,7 +150,11 @@ select option{background:#141415;color:#e9e7e2}
 .gpct{font:500 13px var(--mono);text-align:right;font-variant-numeric:tabular-nums}
 .chev{color:var(--dim);font:400 16px var(--mono);text-align:right}
 .gc-b{padding:0 0 14px 56px}
-.ge{display:grid;grid-template-columns:minmax(0,1fr) 92px 30px;gap:6px;align-items:center;padding:3px 0}
+.initbtn{height:30px;padding:0 10px;border:1px solid var(--line-2);background:transparent;border-radius:999px;font:500 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.initbtn:hover{border-color:var(--accent);color:var(--accent)}
+.initbtn.on{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.ge.init input.num{opacity:.55}
+.ge{display:grid;grid-template-columns:minmax(0,1fr) 92px auto 30px;gap:6px;align-items:center;padding:3px 0}
 .ge.hd{font:500 10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);padding-bottom:4px}
 .ge input{padding:6px 8px;font-size:13px}
 .ge input.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
@@ -272,6 +276,7 @@ select option{background:#141415;color:#e9e7e2}
             <select class="mid" id="gCourse" aria-label="Course"></select>
             <input class="grow" id="gTitle" type="text" placeholder="Test, quiz, project" aria-label="Grade title" required>
             <input id="gScore" type="number" step="any" min="0" max="10" placeholder="Score / 10" aria-label="Score out of 10" style="flex:0 1 110px" required>
+            <label class="chkrow" style="flex:0 0 auto"><input type="checkbox" id="gInit"> Initial test</label>
             <button class="btn primary" type="submit">Add</button>
           </form>
         </details>
@@ -407,7 +412,7 @@ function normalize(d){
       sc=Math.round(sc/10*100)/100;
     }
     if(sc!=="")sc=Math.max(0,Math.min(10,sc));
-    return {id:g.id,course:g.course,title:g.title,score:sc};
+    return {id:g.id,course:g.course,title:g.title,score:sc,initial:!!g.initial};
   });
   b.gv=10;
   b.notes=String(d.notes||"");
@@ -460,7 +465,7 @@ function course(id){for(var i=0;i<S.courses.length;i++)if(S.courses[i].id===id)r
 function courseAvg(id){
   var n=0,s=0;
   S.grades.forEach(function(g){
-    if(g.course!==id||g.score===""||g.score==null||isNaN(+g.score))return;
+    if(g.course!==id||g.initial||g.score===""||g.score==null||isNaN(+g.score))return;
     s+=+g.score;n++;
   });
   return n?s/n:null;
@@ -567,10 +572,11 @@ function renderGrades(){
     var a=courseAvg(c.id),open=!!openCourse[c.id];
     var es=S.grades.filter(function(g){return g.course===c.id});
     var body=es.length?
-      '<div class="ge hd"><span>Title</span><span style="text-align:right">Score / 10</span><span></span></div>'+
-      es.map(function(g){return '<div class="ge">'+
+      '<div class="ge hd"><span>Title</span><span style="text-align:right">Score / 10</span><span></span><span></span></div>'+
+      es.map(function(g){return '<div class="ge'+(g.initial?" init":"")+'">'+
         '<input type="text" value="'+esc(g.title)+'" data-f="grade-title" data-id="'+esc(g.id)+'" placeholder="Grade name" aria-label="Title">'+
         '<input class="num" type="number" step="any" min="0" max="10" value="'+esc(g.score)+'" data-f="grade-score" data-id="'+esc(g.id)+'" aria-label="Score">'+
+        '<button class="initbtn'+(g.initial?" on":"")+'" type="button" data-act="toggle-init" data-id="'+esc(g.id)+'" aria-pressed="'+(!!g.initial)+'" title="Initial test: not counted in the averages">Initial</button>'+
         '<button class="x" type="button" data-act="del-grade" data-id="'+esc(g.id)+'" aria-label="Delete grade">×</button></div>'}).join(""):
       '<div class="empty" style="padding:8px 0">No grades for this course yet.</div>';
     return '<div class="gc" data-course="'+esc(c.id)+'">'+
@@ -674,6 +680,7 @@ document.addEventListener("click",function(e){
       showCnt(cc);touch();
     }
   }
+  else if(a==="toggle-init"){var tg=S.grades.find(function(k){return k.id===id});if(tg){tg.initial=!tg.initial;renderGrades();renderStats();touch()}}
   else if(a==="del-grade"){S.grades=S.grades.filter(function(k){return k.id!==id});renderGrades();renderStats();touch()}
   else if(a==="tab"){selDay=+t.dataset.day;renderSched()}
   else if(a==="del-period"){S.schedule=S.schedule.filter(function(k){return k.id!==id});renderSched();renderStats();touch()}
@@ -731,7 +738,8 @@ $("#gradeForm").addEventListener("submit",function(e){
   e.preventDefault();
   var cid=$("#gCourse").value;if(!cid){$("#gCourse").focus();return}
   var title=$("#gTitle").value.trim(),sc=$("#gScore").value;if(!title||sc==="")return;
-  S.grades.push({id:uid(),course:cid,title:title,score:Math.max(0,Math.min(10,+sc))});
+  S.grades.push({id:uid(),course:cid,title:title,score:Math.max(0,Math.min(10,+sc)),initial:$("#gInit").checked});
+  $("#gInit").checked=false;
   openCourse[cid]=true;
   $("#gTitle").value="";$("#gScore").value="";
   renderGrades();renderStats();touch();$("#gTitle").focus();
