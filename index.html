@@ -254,7 +254,7 @@ select option{background:#141415;color:#e9e7e2}
           <form class="addrow" id="gradeForm" autocomplete="off">
             <select class="mid" id="gCourse" aria-label="Course"></select>
             <input class="grow" id="gTitle" type="text" placeholder="Test, quiz, project" aria-label="Grade title" required>
-            <input id="gScore" type="number" step="any" min="0" placeholder="Score / 100" aria-label="Score out of 100" style="flex:0 1 110px" required>
+            <input id="gScore" type="number" step="any" min="0" max="10" placeholder="Score / 10" aria-label="Score out of 10" style="flex:0 1 110px" required>
             <button class="btn primary" type="submit">Add</button>
           </form>
         </details>
@@ -301,9 +301,6 @@ select option{background:#141415;color:#e9e7e2}
     <div class="row2">
       <div class="field"><label for="fStart">Term starts</label><input id="fStart" type="date"></div>
       <div class="field"><label for="fEnd">Term ends</label><input id="fEnd" type="date"></div>
-    </div>
-    <div class="field"><label for="fScale">Show averages as</label>
-      <select id="fScale"><option value="100">Percent</option><option value="10">Out of 10</option></select>
     </div>
   </div>
 
@@ -365,7 +362,7 @@ var diffDays=function(a,b){return Math.round((sod(a)-sod(b))/864e5)};
 var shortDate=function(d){return d.getDate()+" "+MONTHS[d.getMonth()]};
 var toMin=function(t){var m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):0};
 var byStart=function(a,b){return toMin(a.start)-toMin(b.start)};
-var clamp=function(n){return Math.max(0,Math.min(100,n))};
+var clamp=function(n){return Math.max(0,Math.min(100,n*10))};
 var TYPES=[
   {id:"homework",label:"Homework",hex:"#d98a3d",rgb:"217,138,61"},
   {id:"test",label:"Test",hex:"#cf5a52",rgb:"207,90,82"},
@@ -375,23 +372,27 @@ var TYPES=[
 var typeOf=function(t){for(var i=0;i<TYPES.length;i++)if(TYPES[i].id===(t&&t.type))return TYPES[i];return TYPES[0]};
 function typeOptions(sel,cur){sel.innerHTML=TYPES.map(function(k){return '<option value="'+k.id+'" style="color:'+k.hex+'"'+(k.id===cur?" selected":"")+'>'+k.label+'</option>'}).join("")}
 
-function blank(){return {v:1,name:"",term:{label:"",start:"",end:""},scale:100,
+function blank(){return {v:1,name:"",gv:10,term:{label:"",start:"",end:""},
   widgets:{tasks:true,grades:true,schedule:true,notes:true},
   courses:[],schedule:[],tasks:[],grades:[],notes:""}}
 function normalize(d){
   var b=blank();d=d||{};
   b.name=String(d.name||"");
   b.term=Object.assign(b.term,d.term||{});
-  b.scale=d.scale===10?10:100;
   b.widgets=Object.assign(b.widgets,d.widgets||{});
   ["courses","schedule","tasks","grades"].forEach(function(k){b[k]=Array.isArray(d[k])?d[k]:[]});
   b.courses=b.courses.map(function(c){return {id:c.id,code:c.code,name:c.name}});
   b.schedule=b.schedule.map(function(p){return {id:p.id,day:p.day,start:p.start,end:p.end,course:p.course}});
   b.grades=b.grades.map(function(g){
     var sc=(g.score===""||g.score==null||isNaN(+g.score))?"":+g.score;
-    if(sc!==""&&+g.max>0&&+g.max!==100)sc=Math.round(sc/+g.max*1000)/10;
+    if(sc!==""&&d.gv!==10){
+      if(+g.max>0&&+g.max!==100)sc=sc/+g.max*100;
+      sc=Math.round(sc/10*100)/100;
+    }
+    if(sc!=="")sc=Math.max(0,Math.min(10,sc));
     return {id:g.id,course:g.course,title:g.title,score:sc};
   });
+  b.gv=10;
   b.notes=String(d.notes||"");
   b.updatedAt=String(d.updatedAt||"");
   return b;
@@ -451,7 +452,7 @@ function overallAvg(){
   var v=S.courses.map(function(c){return courseAvg(c.id)}).filter(function(a){return a!=null});
   return v.length?v.reduce(function(a,b){return a+b},0)/v.length:null;
 }
-function fmtPct(p){if(p==null)return "—";return S.scale===10?(p/10).toFixed(1):Math.round(p)+"%"}
+function fmtPct(p){if(p==null)return "—";return p.toFixed(2)}
 function dueInfo(t){
   var d=parse(t.due);
   if(!d)return {txt:"No date",cls:""};
@@ -537,9 +538,9 @@ function renderTasks(){
 }
 function renderBig(){
   var avg=overallAvg(),n=S.courses.filter(function(c){return courseAvg(c.id)!=null}).length;
-  var num=avg==null?"—":(S.scale===10?(avg/10).toFixed(2):avg.toFixed(1));
-  var unit=avg!=null&&S.scale!==10?"<small>%</small>":"";
-  var sub=avg==null?"Add grades to see your average.":"Average of "+n+(n===1?" course":" courses")+(S.scale===10?", out of 10":"");
+  var num=avg==null?"—":avg.toFixed(2);
+  var unit=avg!=null?"<small>/10</small>":"";
+  var sub=avg==null?"Add grades to see your average.":"Average of "+n+(n===1?" course":" courses");
   $("#gBig").innerHTML='<div class="l">Overall average</div><div class="n">'+num+unit+'</div><div class="s">'+sub+'</div>';
 }
 function renderGrades(){
@@ -549,10 +550,10 @@ function renderGrades(){
     var a=courseAvg(c.id),open=!!openCourse[c.id];
     var es=S.grades.filter(function(g){return g.course===c.id});
     var body=es.length?
-      '<div class="ge hd"><span>Title</span><span style="text-align:right">Score / 100</span><span></span></div>'+
+      '<div class="ge hd"><span>Title</span><span style="text-align:right">Score / 10</span><span></span></div>'+
       es.map(function(g){return '<div class="ge">'+
         '<input type="text" value="'+esc(g.title)+'" data-f="grade-title" data-id="'+esc(g.id)+'" aria-label="Title">'+
-        '<input class="num" type="number" step="any" value="'+esc(g.score)+'" data-f="grade-score" data-id="'+esc(g.id)+'" aria-label="Score">'+
+        '<input class="num" type="number" step="any" min="0" max="10" value="'+esc(g.score)+'" data-f="grade-score" data-id="'+esc(g.id)+'" aria-label="Score">'+
         '<button class="x" type="button" data-act="del-grade" data-id="'+esc(g.id)+'" aria-label="Delete grade">×</button></div>'}).join(""):
       '<div class="empty" style="padding:8px 0">No grades for this course yet.</div>';
     return '<div class="gc" data-course="'+esc(c.id)+'">'+
@@ -615,7 +616,6 @@ function renderCourseEd(){
 function fillProfile(){
   $("#fName").value=S.name;$("#fTerm").value=S.term.label||"";
   $("#fStart").value=S.term.start||"";$("#fEnd").value=S.term.end||"";
-  $("#fScale").value=String(S.scale);
 }
 function renderAll(){
   renderHead();renderStats();renderTasks();renderGrades();renderSched();fillSelects();applyWidgets();
@@ -656,7 +656,7 @@ document.addEventListener("input",function(e){
   else if(f==="task-note"){var xn=S.tasks.find(function(k){return k.id===id});if(xn){xn.note=t.value;touch()}}
   else if(f.indexOf("grade-")===0){
     var g=S.grades.find(function(k){return k.id===id});if(!g)return;
-    var k=f.slice(6);g[k]=k==="title"?t.value:(t.value===""?"":+t.value);
+    var k=f.slice(6);g[k]=k==="title"?t.value:(t.value===""?"":Math.max(0,Math.min(10,+t.value)));
     updateGradeDom();renderStats();touch();
   }else if(f.indexOf("course-")===0){
     var c=course(id);if(!c)return;c[f.slice(7)]=t.value;afterCourseChange();touch();
@@ -682,7 +682,7 @@ $("#gradeForm").addEventListener("submit",function(e){
   e.preventDefault();
   var cid=$("#gCourse").value;if(!cid){$("#gCourse").focus();return}
   var title=$("#gTitle").value.trim(),sc=$("#gScore").value;if(!title||sc==="")return;
-  S.grades.push({id:uid(),course:cid,title:title,score:+sc});
+  S.grades.push({id:uid(),course:cid,title:title,score:Math.max(0,Math.min(10,+sc))});
   openCourse[cid]=true;
   $("#gTitle").value="";$("#gScore").value="";
   renderGrades();renderStats();touch();$("#gTitle").focus();
@@ -723,7 +723,6 @@ $("#fName").addEventListener("input",function(e){S.name=e.target.value;renderHea
 $("#fTerm").addEventListener("input",function(e){S.term.label=e.target.value;renderHead();touch()});
 $("#fStart").addEventListener("change",function(e){S.term.start=e.target.value;renderHead();touch()});
 $("#fEnd").addEventListener("change",function(e){S.term.end=e.target.value;renderHead();touch()});
-$("#fScale").addEventListener("change",function(e){S.scale=+e.target.value===10?10:100;renderStats();renderGrades();touch()});
 document.querySelectorAll("[data-w-toggle]").forEach(function(cb){
   cb.addEventListener("change",function(){S.widgets[cb.dataset.wToggle]=cb.checked;applyWidgets();touch()});
 });
