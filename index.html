@@ -130,7 +130,15 @@ select option{background:#141415;color:#e9e7e2}
 .gbig .n small{font-size:.38em;color:var(--accent);margin-left:4px;letter-spacing:0}
 .gbig .s{font-size:13px;color:var(--muted);margin-top:6px}
 .gc{border-bottom:1px solid var(--line)}
-.gc-h{width:100%;display:grid;grid-template-columns:44px minmax(0,1fr) minmax(60px,140px) 52px 16px;align-items:center;gap:12px;background:transparent;border:0;padding:14px 0;text-align:left}
+.gc-h{width:100%;display:grid;grid-template-columns:44px minmax(0,1fr) minmax(60px,120px) 48px auto 14px;align-items:center;gap:12px;padding:10px 0;text-align:left;cursor:pointer}
+.gc-h:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.gbtns{display:flex;gap:6px}
+.gbtn{min-width:30px;height:30px;border:1px solid var(--line-2);background:transparent;border-radius:6px;font:500 15px/1 var(--mono);color:var(--muted);padding:0 6px}
+.gbtn:hover{border-color:var(--accent);color:var(--accent)}
+.gbtn .n{font-variant-numeric:tabular-nums;color:var(--fg)}
+.cnt{display:flex;gap:16px;flex-wrap:wrap;padding:4px 0 12px}
+.cnt label{display:flex;align-items:center;gap:8px;font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.cnt input{width:64px;padding:6px 8px;font-size:13px;text-align:right}
 .code{font:500 11px var(--mono);letter-spacing:.08em;color:var(--muted)}
 .gname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gbar{height:3px;background:var(--line-2);border-radius:3px;overflow:hidden}
@@ -203,7 +211,7 @@ select option{background:#141415;color:#e9e7e2}
   .task .typeSel{grid-area:y;justify-self:start}
   .task .due{grid-area:d}
   .task .codeSel{display:none}
-  .gc-h{grid-template-columns:40px minmax(0,1fr) 52px 14px}
+  .gc-h{grid-template-columns:40px minmax(0,1fr) 44px auto 12px;gap:8px}
   .gc-h .gbar{display:none}
   .gc-b{padding-left:0}
   .ced{grid-template-columns:56px minmax(0,1fr) auto}
@@ -381,7 +389,7 @@ function normalize(d){
   b.term=Object.assign(b.term,d.term||{});
   b.widgets=Object.assign(b.widgets,d.widgets||{});
   ["courses","schedule","tasks","grades"].forEach(function(k){b[k]=Array.isArray(d[k])?d[k]:[]});
-  b.courses=b.courses.map(function(c){return {id:c.id,code:c.code,name:c.name}});
+  b.courses=b.courses.map(function(c){return {id:c.id,code:c.code,name:c.name,plus:Math.max(0,Math.floor(+c.plus||0)),minus:Math.max(0,Math.floor(+c.minus||0))}});
   b.schedule=b.schedule.map(function(p){return {id:p.id,day:p.day,start:p.start,end:p.end,course:p.course}});
   b.grades=b.grades.map(function(g){
     var sc=(g.score===""||g.score==null||isNaN(+g.score))?"":+g.score;
@@ -552,17 +560,22 @@ function renderGrades(){
     var body=es.length?
       '<div class="ge hd"><span>Title</span><span style="text-align:right">Score / 10</span><span></span></div>'+
       es.map(function(g){return '<div class="ge">'+
-        '<input type="text" value="'+esc(g.title)+'" data-f="grade-title" data-id="'+esc(g.id)+'" aria-label="Title">'+
+        '<input type="text" value="'+esc(g.title)+'" data-f="grade-title" data-id="'+esc(g.id)+'" placeholder="Grade name" aria-label="Title">'+
         '<input class="num" type="number" step="any" min="0" max="10" value="'+esc(g.score)+'" data-f="grade-score" data-id="'+esc(g.id)+'" aria-label="Score">'+
         '<button class="x" type="button" data-act="del-grade" data-id="'+esc(g.id)+'" aria-label="Delete grade">×</button></div>'}).join(""):
       '<div class="empty" style="padding:8px 0">No grades for this course yet.</div>';
     return '<div class="gc" data-course="'+esc(c.id)+'">'+
-      '<button class="gc-h" type="button" data-act="toggle-course" data-id="'+esc(c.id)+'" aria-expanded="'+open+'">'+
+      '<div class="gc-h" role="button" tabindex="0" data-act="toggle-course" data-id="'+esc(c.id)+'" aria-expanded="'+open+'">'+
         '<span class="code">'+esc(c.code)+'</span><span class="gname">'+esc(c.name)+'</span>'+
         '<span class="gbar"><i style="width:'+(a==null?0:clamp(a))+'%"></i></span>'+
         '<span class="gpct" data-pct="'+esc(c.id)+'">'+esc(fmtPct(a))+'</span>'+
-        '<span class="chev" aria-hidden="true">'+(open?"−":"+")+'</span></button>'+
-      '<div class="gc-b"'+(open?"":" hidden")+'>'+body+'</div></div>';
+        '<span class="gbtns"><button class="gbtn" type="button" data-act="cnt-minus" data-id="'+esc(c.id)+'" aria-label="Add a minus to '+esc(c.name)+'">− <span class="n">'+(+c.minus||0)+'</span></button>'+
+        '<button class="gbtn" type="button" data-act="cnt-plus" data-id="'+esc(c.id)+'" aria-label="Add a plus to '+esc(c.name)+'">+ <span class="n">'+(+c.plus||0)+'</span></button></span>'+
+        '<span class="chev" aria-hidden="true">'+(open?"▾":"▸")+'</span></div>'+
+      '<div class="gc-b"'+(open?"":" hidden")+'>'+
+        '<div class="cnt"><label>Pluses <input class="num" type="number" min="0" step="1" value="'+(+c.plus||0)+'" data-f="cnt-plus" data-id="'+esc(c.id)+'"></label>'+
+        '<label>Minuses <input class="num" type="number" min="0" step="1" value="'+(+c.minus||0)+'" data-f="cnt-minus" data-id="'+esc(c.id)+'"></label></div>'+
+        body+'</div></div>';
   }).join("");
 }
 function updateGradeDom(){
@@ -623,6 +636,13 @@ function renderAll(){
   if(!$("#drawer").hidden){fillProfile();renderCourseEd();$("#json").value=JSON.stringify(S,null,2)}
 }
 function afterCourseChange(){renderTasks();renderGrades();renderSched();renderStats();fillSelects()}
+function showCnt(c){
+  var row=document.querySelector('.gc[data-course="'+c.id+'"]');if(!row)return;
+  ["plus","minus"].forEach(function(k){
+    var n=row.querySelector('[data-act="cnt-'+k+'"] .n');if(n)n.textContent=+c[k]||0;
+    var inp=row.querySelector('input[data-f="cnt-'+k+'"]');if(inp&&document.activeElement!==inp)inp.value=+c[k]||0;
+  });
+}
 function afterTask(){renderTasks();renderSched();renderStats()}
 
 /* ---------- events ---------- */
@@ -633,6 +653,14 @@ document.addEventListener("click",function(e){
   else if(a==="open-note"){noteOpen[id]=true;renderTasks();var ni=document.querySelector('[data-f="task-note"][data-id="'+id+'"]');if(ni)ni.focus()}
   else if(a==="del-task"){S.tasks=S.tasks.filter(function(k){return k.id!==id});afterTask();touch()}
   else if(a==="toggle-course"){openCourse[id]=!openCourse[id];renderGrades()}
+  else if(a==="cnt-plus"||a==="cnt-minus"){
+    var cc=course(id);
+    if(cc){
+      var key=a==="cnt-plus"?"plus":"minus",opp=key==="plus"?"minus":"plus";
+      if((+cc[opp]||0)>0)cc[opp]=(+cc[opp])-1;else cc[key]=(+cc[key]||0)+1;
+      showCnt(cc);touch();
+    }
+  }
   else if(a==="del-grade"){S.grades=S.grades.filter(function(k){return k.id!==id});renderGrades();renderStats();touch()}
   else if(a==="tab"){selDay=+t.dataset.day;renderSched()}
   else if(a==="del-period"){S.schedule=S.schedule.filter(function(k){return k.id!==id});renderSched();renderStats();touch()}
@@ -649,6 +677,10 @@ document.addEventListener("click",function(e){
     }
   }
 });
+document.addEventListener("keydown",function(e){
+  var h=e.target;
+  if(h&&h.classList&&h.classList.contains("gc-h")&&(e.key==="Enter"||e.key===" ")){e.preventDefault();h.click()}
+});
 document.addEventListener("input",function(e){
   var t=e.target,f=t.dataset.f;if(!f)return;
   var id=t.dataset.id;
@@ -658,6 +690,10 @@ document.addEventListener("input",function(e){
     var g=S.grades.find(function(k){return k.id===id});if(!g)return;
     var k=f.slice(6);g[k]=k==="title"?t.value:(t.value===""?"":Math.max(0,Math.min(10,+t.value)));
     updateGradeDom();renderStats();touch();
+  }else if(f==="cnt-plus"||f==="cnt-minus"){
+    var cn=course(id);if(!cn)return;
+    var k2=f==="cnt-plus"?"plus":"minus";
+    cn[k2]=Math.max(0,Math.floor(+t.value||0));showCnt(cn);touch();
   }else if(f.indexOf("course-")===0){
     var c=course(id);if(!c)return;c[f.slice(7)]=t.value;afterCourseChange();touch();
   }
