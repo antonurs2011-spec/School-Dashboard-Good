@@ -611,7 +611,12 @@ function renderSched(){
   if(!ps.length){$("#schedList").innerHTML='<div class="empty">No classes on '+DAYFULL[selDay]+'.</div>';return}
   $("#schedList").innerHTML=ps.map(function(p){
     var c=course(p.course),live=isToday&&nowM>=toMin(p.start)&&nowM<toMin(p.end);
-    var openT=p.course?S.tasks.filter(function(t){return !t.done&&t.course===p.course}).sort(function(a,b){return (a.due||"9999")<(b.due||"9999")?-1:1}):[];
+    var openT=p.course?S.tasks.filter(function(t){
+      if(t.done||t.course!==p.course)return false;
+      var dd=parse(t.due);if(!dd)return false;
+      var nd=diffDays(dd,new Date());
+      return nd>=0&&nd<=6&&dd.getDay()===+p.day;
+    }).sort(function(a,b){return (a.due||"9999")<(b.due||"9999")?-1:1}):[];
     var tip=openT.map(function(t){return typeOf(t).label+": "+t.title+(t.note?" — "+t.note:"")}).join("\n");
     return '<div class="per'+(live?" now":"")+(openT.length?" tint":"")+'"'+(openT.length?' style="--kr:'+typeOf(openT[0]).rgb+'" title="'+esc(tip)+'"':"")+'>'+
       '<div class="pt">'+esc(p.start)+'<br><span>'+esc(p.end)+'</span></div>'+
