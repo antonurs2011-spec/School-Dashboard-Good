@@ -203,6 +203,11 @@ select option{background:#141415;color:#e9e7e2}
 
 @media (max-width:860px){
   .cols{grid-template-columns:minmax(0,1fr);gap:40px}
+  .col{display:contents}
+  section[data-w="tasks"]{order:1}
+  section[data-w="schedule"]{order:2}
+  section[data-w="grades"]{order:3}
+  section[data-w="notes"]{order:4}
 }
 @media (max-width:720px){
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
