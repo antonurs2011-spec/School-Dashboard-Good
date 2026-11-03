@@ -98,7 +98,15 @@ details.add>summary::before{content:"+ "}
 details.add[open]>summary::before{content:"− "}
 
 /* tasks */
-.task{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto auto;align-items:center;gap:10px;padding:6px 8px 6px 10px;border-bottom:1px solid var(--line);min-height:50px;background:linear-gradient(90deg,rgba(var(--kr,152,133,88),.26),rgba(var(--kr,152,133,88),0) 40%)}
+.grip{width:18px;height:30px;border:0;background:transparent;color:var(--dim);cursor:grab;touch-action:none;font:400 14px/1 var(--mono);letter-spacing:-3px;padding:0;user-select:none;-webkit-user-select:none}
+.grip:hover{color:var(--fg)}
+.task.dragging{position:relative;z-index:5;background-color:var(--surface);box-shadow:0 8px 22px rgba(0,0,0,.55);transition:none}
+.task.dragging .grip{cursor:grabbing}
+.task.drop-before{box-shadow:0 -2px 0 var(--accent)}
+.task.drop-after{box-shadow:0 2px 0 var(--accent)}
+.linkbtn{background:transparent;border:0;color:var(--accent);font:500 11px var(--mono);letter-spacing:.06em;padding:0;margin-right:14px}
+.linkbtn:hover{text-decoration:underline}
+.task{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto auto auto auto;align-items:center;gap:10px;padding:6px 8px 6px 10px;border-bottom:1px solid var(--line);min-height:50px;background:linear-gradient(90deg,rgba(var(--kr,152,133,88),.26),rgba(var(--kr,152,133,88),0) 40%)}
 .task.done{background:linear-gradient(90deg,rgba(var(--kr,152,133,88),.09),rgba(var(--kr,152,133,88),0) 40%)}
 .chk{width:22px;height:22px;border:1.5px solid var(--line-2);background:transparent;border-radius:5px;padding:0;position:relative}
 .chk:hover{border-color:var(--accent)}
@@ -217,7 +225,8 @@ select option{background:#141415;color:#e9e7e2}
   .mast-r{width:100%;justify-content:space-between}
 }
 @media (max-width:520px){
-  .task{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"c t x" ". y d";row-gap:0}
+  .task{grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-areas:"g c t x" ". . y d";row-gap:0;gap:8px}
+  .task .grip{grid-area:g}
   .task .chk{grid-area:c}
   .task .tcell{grid-area:t}
   .task .x{grid-area:x}
@@ -260,7 +269,7 @@ select option{background:#141415;color:#e9e7e2}
   <div class="cols" id="cols">
     <div class="col" id="colA">
       <section data-w="tasks" aria-labelledby="hTasks">
-        <div class="sec-h"><h2 id="hTasks">Assignments</h2><span class="meta" id="taskCount"></span></div>
+        <div class="sec-h"><h2 id="hTasks">Assignments</h2><span class="meta"><button class="linkbtn" id="sortTasks" type="button">Sort by date</button><span id="taskCount"></span></span></div>
         <form class="addrow" id="taskForm" autocomplete="off">
           <input class="grow" id="tTitle" type="text" placeholder="Add an assignment" aria-label="Assignment title" required>
           <select class="mid" id="tType" aria-label="Type"></select>
@@ -399,7 +408,11 @@ var TYPES=[
 var typeOf=function(t){for(var i=0;i<TYPES.length;i++)if(TYPES[i].id===(t&&t.type))return TYPES[i];return TYPES[0]};
 function typeOptions(sel,cur){sel.innerHTML=TYPES.map(function(k){return '<option value="'+k.id+'" style="color:'+k.hex+'"'+(k.id===cur?" selected":"")+'>'+k.label+'</option>'}).join("")}
 
-function blank(){return {v:1,name:"",gv:10,term:{label:"",start:"",end:""},
+function byDue(a,b){
+  if(!!a.done!==!!b.done)return a.done?1:-1;
+  var x=a.due||"9999",y=b.due||"9999";return x<y?-1:x>y?1:0;
+}
+function blank(){return {v:1,tv:1,name:"",gv:10,term:{label:"",start:"",end:""},
   widgets:{tasks:true,grades:true,schedule:true,notes:true},
   courses:[],schedule:[],tasks:[],grades:[],notes:""}}
 function normalize(d){
@@ -408,6 +421,8 @@ function normalize(d){
   b.term=Object.assign(b.term,d.term||{});
   b.widgets=Object.assign(b.widgets,d.widgets||{});
   ["courses","schedule","tasks","grades"].forEach(function(k){b[k]=Array.isArray(d[k])?d[k]:[]});
+  b.tv=1;
+  if(d.tv!==1)b.tasks.sort(byDue);
   b.courses=b.courses.map(function(c){return {id:c.id,code:c.code,name:c.name,plus:Math.max(0,Math.floor(+c.plus||0)),minus:Math.max(0,Math.floor(+c.minus||0))}});
   b.schedule=b.schedule.map(function(p){return {id:p.id,day:p.day,start:p.start,end:p.end,course:p.course}});
   b.grades=b.grades.map(function(g){
@@ -540,10 +555,7 @@ function renderStats(){
    '<div class="stat"><div class="lab">Next class</div><div class="val">'+(nx?esc(nx.p.start):"—")+'</div><div class="sub">'+esc(nxSub)+'</div></div>';
 }
 function renderTasks(){
-  var list=S.tasks.slice().sort(function(a,b){
-    if(!!a.done!==!!b.done)return a.done?1:-1;
-    var x=a.due||"9999",y=b.due||"9999";return x<y?-1:x>y?1:0;
-  });
+  var list=S.tasks.filter(function(t){return !t.done}).concat(S.tasks.filter(function(t){return t.done}));
   var open=S.tasks.filter(function(t){return !t.done}).length;
   $("#taskCount").textContent=S.tasks.length?open+" open · "+(S.tasks.length-open)+" done":"";
   if(!list.length){$("#taskList").innerHTML='<div class="empty">No assignments yet. Add the first one above.</div>';return}
@@ -552,7 +564,8 @@ function renderTasks(){
     var opts='<option value="">—</option>'+S.courses.map(function(c){return '<option value="'+esc(c.id)+'"'+(c.id===t.course?" selected":"")+'>'+esc(c.code)+'</option>'}).join("");
     var ty=typeOf(t);
     var tyOpts=TYPES.map(function(k){return '<option value="'+k.id+'"'+(k.id===ty.id?" selected":"")+'>'+k.label+'</option>'}).join("");
-    return '<div class="task'+(t.done?" done":"")+'" style="--k:'+ty.hex+';--kr:'+ty.rgb+'">'+
+    return '<div class="task'+(t.done?" done":"")+'" style="--k:'+ty.hex+';--kr:'+ty.rgb+'" data-id="'+esc(t.id)+'">'+
+      '<button class="grip" type="button" data-id="'+esc(t.id)+'" aria-label="Move assignment. Drag it, or use the up and down arrow keys.">⋮⋮</button>'+
       '<button class="chk" type="button" role="checkbox" aria-checked="'+(!!t.done)+'" aria-label="Mark done" data-act="toggle-task" data-id="'+esc(t.id)+'"></button>'+
       '<div class="tcell"><input class="ghost ttl" type="text" value="'+esc(t.title)+'" data-f="task-title" data-id="'+esc(t.id)+'" aria-label="Assignment title">'+
         (t.note||noteOpen[t.id]?'<input class="ghost nt" type="text" value="'+esc(t.note||"")+'" placeholder="Add notes" data-f="task-note" data-id="'+esc(t.id)+'" aria-label="Notes">':'<button class="addnote" type="button" data-act="open-note" data-id="'+esc(t.id)+'">+ notes</button>')+'</div>'+
@@ -774,6 +787,57 @@ $("#periodForm").addEventListener("submit",function(e){
   renderSched();renderStats();touch();
 });
 $("#notes").addEventListener("input",function(e){S.notes=e.target.value;touch()});
+
+/* reorder assignments */
+var drag=null;
+function clearDrop(){document.querySelectorAll("#taskList .drop-before,#taskList .drop-after").forEach(function(r){r.classList.remove("drop-before","drop-after")})}
+function moveTask(id,toId,after){
+  var i=S.tasks.findIndex(function(t){return t.id===id});if(i<0)return false;
+  var tk=S.tasks.splice(i,1)[0];
+  var j=toId?S.tasks.findIndex(function(t){return t.id===toId}):-1;
+  if(j<0)S.tasks.push(tk);else S.tasks.splice(after?j+1:j,0,tk);
+  return true;
+}
+document.addEventListener("pointerdown",function(e){
+  var g=e.target.closest&&e.target.closest(".grip");if(!g||(e.button!==undefined&&e.button!==0))return;
+  var row=g.closest(".task");if(!row)return;
+  e.preventDefault();
+  drag={id:row.dataset.id,row:row,grip:g,startY:e.clientY,done:row.classList.contains("done"),to:null,after:false};
+  row.classList.add("dragging");document.body.style.userSelect="none";
+  try{g.setPointerCapture(e.pointerId)}catch(x){}
+});
+document.addEventListener("pointermove",function(e){
+  if(!drag)return;
+  drag.row.style.transform="translateY("+(e.clientY-drag.startY)+"px)";
+  clearDrop();
+  var rows=Array.prototype.slice.call(document.querySelectorAll("#taskList .task")).filter(function(r){return r!==drag.row&&r.classList.contains("done")===drag.done});
+  var target=null,after=false;
+  for(var i=0;i<rows.length;i++){var rc=rows[i].getBoundingClientRect();if(e.clientY<rc.top+rc.height/2){target=rows[i];break}}
+  if(!target&&rows.length){target=rows[rows.length-1];after=true}
+  drag.to=target?target.dataset.id:null;drag.after=after;
+  if(target)target.classList.add(after?"drop-after":"drop-before");
+  if(e.clientY<70)window.scrollBy(0,-14);else if(e.clientY>window.innerHeight-70)window.scrollBy(0,14);
+});
+function endDrag(commit){
+  if(!drag)return;
+  var d=drag;drag=null;clearDrop();
+  d.row.classList.remove("dragging");d.row.style.transform="";document.body.style.userSelect="";
+  if(commit&&d.to&&d.to!==d.id&&moveTask(d.id,d.to,d.after)){renderTasks();renderSched();touch()}
+}
+document.addEventListener("pointerup",function(){endDrag(true)});
+document.addEventListener("pointercancel",function(){endDrag(false)});
+document.addEventListener("keydown",function(e){
+  var g=e.target.closest&&e.target.closest(".grip");
+  if(!g||(e.key!=="ArrowUp"&&e.key!=="ArrowDown"))return;
+  e.preventDefault();
+  var id=g.dataset.id,me=S.tasks.find(function(t){return t.id===id});if(!me)return;
+  var grp=S.tasks.filter(function(t){return !!t.done===!!me.done}),k=grp.findIndex(function(t){return t.id===id});
+  var nb=grp[k+(e.key==="ArrowUp"?-1:1)];if(!nb)return;
+  moveTask(id,nb.id,e.key==="ArrowDown");
+  renderTasks();renderSched();touch();
+  var ng=document.querySelector('.grip[data-id="'+id+'"]');if(ng)ng.focus();
+});
+$("#sortTasks").addEventListener("click",function(){S.tasks.sort(byDue);renderTasks();renderSched();touch()});
 
 /* drawer */
 function openDrawer(){
