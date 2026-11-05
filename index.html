@@ -180,6 +180,7 @@ select option{background:#141415;color:#e9e7e2}
 .pn{display:flex;flex-direction:column;min-width:0}
 .pn b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pn span{font-size:13px;color:var(--muted)}
+.tch{font-size:13px;color:var(--muted);padding:3px 6px;margin-left:-6px;width:calc(100% + 6px)}
 .per.now .pt{color:var(--accent)}
 .nowtag{font:500 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent);padding:3px 8px;border-radius:999px}
 .tsel{display:inline-flex;align-items:center;gap:4px}
@@ -312,6 +313,7 @@ select option{background:#141415;color:#e9e7e2}
             <span class="tsel"><span class="tl">From</span><select id="pSH" aria-label="Start hour"></select><b>:</b><select id="pSM" aria-label="Start minutes"></select></span>
             <span class="tsel"><span class="tl">To</span><select id="pEH" aria-label="End hour"></select><b>:</b><select id="pEM" aria-label="End minutes"></select></span>
             <select class="mid" id="pCourse" aria-label="Course"></select>
+            <input id="pTeacher" class="grow" type="text" placeholder="Teacher (optional)" aria-label="Teacher, optional">
             <button class="btn primary" type="submit">Add</button>
           </form>
           <p class="hint" id="pMsg" role="status"></p>
@@ -424,7 +426,7 @@ function normalize(d){
   b.tv=1;
   if(d.tv!==1)b.tasks.sort(byDue);
   b.courses=b.courses.map(function(c){return {id:c.id,code:c.code,name:c.name,plus:Math.max(0,Math.floor(+c.plus||0)),minus:Math.max(0,Math.floor(+c.minus||0))}});
-  b.schedule=b.schedule.map(function(p){return {id:p.id,day:p.day,start:p.start,end:p.end,course:p.course}});
+  b.schedule=b.schedule.map(function(p){return {id:p.id,day:p.day,start:p.start,end:p.end,course:p.course,teacher:String(p.teacher||"")}});
   b.grades=b.grades.map(function(g){
     var sc=(g.score===""||g.score==null||isNaN(+g.score))?"":+g.score;
     if(sc!==""&&d.gv!==10){
@@ -638,7 +640,7 @@ function renderSched(){
     var tip=openT.map(function(t){return typeOf(t).label+": "+t.title+(t.note?" — "+t.note:"")}).join("\n");
     return '<div class="per'+(live?" now":"")+(openT.length?" tint":"")+'"'+(openT.length?' style="--kr:'+typeOf(openT[0]).rgb+'" title="'+esc(tip)+'"':"")+'>'+
       '<div class="pt">'+esc(p.start)+'<br><span>'+esc(p.end)+'</span></div>'+
-      '<div class="pn"><b>'+esc(c?c.name:"Class")+'</b></div>'+
+      '<div class="pn"><b>'+esc(c?c.name:"Class")+'</b><input class="ghost tch" type="text" value="'+esc(p.teacher||"")+'" placeholder="Add teacher" data-f="period-teacher" data-id="'+esc(p.id)+'" aria-label="Teacher"></div>'+
       (live?'<span class="nowtag">Now</span>':'<span></span>')+
       '<button class="x" type="button" data-act="del-period" data-id="'+esc(p.id)+'" aria-label="Delete class period">×</button></div>';
   }).join("");
@@ -733,6 +735,8 @@ document.addEventListener("input",function(e){
     var g=S.grades.find(function(k){return k.id===id});if(!g)return;
     var k=f.slice(6);g[k]=k==="title"?t.value:(t.value===""?"":Math.max(0,Math.min(10,+t.value)));
     updateGradeDom();renderStats();touch();
+  }else if(f==="period-teacher"){
+    var pp=S.schedule.find(function(k){return k.id===id});if(pp){pp.teacher=t.value;touch()}
   }else if(f==="cnt-plus"||f==="cnt-minus"){
     var cn=course(id);if(!cn)return;
     var k2=f==="cnt-plus"?"plus":"minus";
@@ -781,9 +785,9 @@ $("#periodForm").addEventListener("submit",function(e){
   var st=$("#pSH").value+":"+$("#pSM").value,en=$("#pEH").value+":"+$("#pEM").value;
   if(toMin(en)<=toMin(st)){$("#pMsg").textContent="The end time must be after the start time.";return}
   $("#pMsg").textContent="";
-  S.schedule.push({id:uid(),day:+$("#pDay").value,start:st,end:en,course:$("#pCourse").value});
+  S.schedule.push({id:uid(),day:+$("#pDay").value,start:st,end:en,course:$("#pCourse").value,teacher:$("#pTeacher").value.trim()});
   selDay=+$("#pDay").value;
-  $("#pDay").value="1";$("#pCourse").value="";
+  $("#pDay").value="1";$("#pCourse").value="";$("#pTeacher").value="";
   renderSched();renderStats();touch();
 });
 $("#notes").addEventListener("input",function(e){S.notes=e.target.value;touch()});
