@@ -632,7 +632,7 @@ function renderSched(){
   if(!ps.length){$("#schedList").innerHTML='<div class="empty">No classes on '+DAYFULL[selDay]+'.</div>';return}
   $("#schedList").innerHTML=ps.map(function(p,i){
     var gapH="";
-    if(i>0){var gm=toMin(p.start)-toMin(ps[i-1].end);if(gm>60)gapH='<div class="pgap" title="'+gm+' min break"></div>'}
+    if(i>0){var gm=toMin(p.start)-toMin(ps[i-1].end);if(gm>=60)gapH='<div class="pgap" title="'+gm+' min break"></div>'}
     var c=course(p.course),live=isToday&&nowM>=toMin(p.start)&&nowM<toMin(p.end);
     var openT=p.course?S.tasks.filter(function(t){
       if(t.done||t.course!==p.course)return false;
