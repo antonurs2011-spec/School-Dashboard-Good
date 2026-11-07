@@ -776,7 +776,7 @@ $("#gradeForm").addEventListener("submit",function(e){
 });
 function timeSelects(){
   var H="",M="";
-  for(var h=8;h<=16;h++)H+='<option value="'+pad(h)+'">'+pad(h)+'</option>';
+  for(var h=8;h<=18;h++)H+='<option value="'+pad(h)+'">'+pad(h)+'</option>';
   for(var m=0;m<60;m+=10)M+='<option value="'+pad(m)+'">'+pad(m)+'</option>';
   ["#pSH","#pEH"].forEach(function(s){$(s).innerHTML=H});
   ["#pSM","#pEM"].forEach(function(s){$(s).innerHTML=M});
