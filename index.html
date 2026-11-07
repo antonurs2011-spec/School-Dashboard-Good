@@ -180,6 +180,7 @@ select option{background:#141415;color:#e9e7e2}
 .pn{display:flex;flex-direction:column;min-width:0}
 .pn b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pn span{font-size:13px;color:var(--muted)}
+.pgap{width:150px;max-width:70%;height:1px;background:var(--accent);margin:18px auto}
 .tch{font-size:13px;color:var(--muted);padding:3px 6px;margin-left:-6px;width:calc(100% + 6px)}
 .per.now .pt{color:var(--accent)}
 .nowtag{font:500 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent);padding:3px 8px;border-radius:999px}
@@ -629,7 +630,9 @@ function renderSched(){
   var now=new Date(),nowM=now.getHours()*60+now.getMinutes(),isToday=selDay===now.getDay();
   $("#schedMeta").textContent=ps.length?ps.length+(ps.length===1?" class":" classes"):"";
   if(!ps.length){$("#schedList").innerHTML='<div class="empty">No classes on '+DAYFULL[selDay]+'.</div>';return}
-  $("#schedList").innerHTML=ps.map(function(p){
+  $("#schedList").innerHTML=ps.map(function(p,i){
+    var gapH="";
+    if(i>0){var gm=toMin(p.start)-toMin(ps[i-1].end);if(gm>60)gapH='<div class="pgap" title="'+gm+' min break"></div>'}
     var c=course(p.course),live=isToday&&nowM>=toMin(p.start)&&nowM<toMin(p.end);
     var openT=p.course?S.tasks.filter(function(t){
       if(t.done||t.course!==p.course)return false;
@@ -638,7 +641,7 @@ function renderSched(){
       return nd>=0&&nd<=6&&dd.getDay()===+p.day;
     }).sort(function(a,b){return (a.due||"9999")<(b.due||"9999")?-1:1}):[];
     var tip=openT.map(function(t){return typeOf(t).label+": "+t.title+(t.note?" — "+t.note:"")}).join("\n");
-    return '<div class="per'+(live?" now":"")+(openT.length?" tint":"")+'"'+(openT.length?' style="--kr:'+typeOf(openT[0]).rgb+'" title="'+esc(tip)+'"':"")+'>'+
+    return gapH+'<div class="per'+(live?" now":"")+(openT.length?" tint":"")+'"'+(openT.length?' style="--kr:'+typeOf(openT[0]).rgb+'" title="'+esc(tip)+'"':"")+'>'+
       '<div class="pt">'+esc(p.start)+'<br><span>'+esc(p.end)+'</span></div>'+
       '<div class="pn"><b>'+esc(c?c.name:"Class")+'</b><input class="ghost tch" type="text" value="'+esc(p.teacher||"")+'" placeholder="Add teacher" data-f="period-teacher" data-id="'+esc(p.id)+'" aria-label="Teacher"></div>'+
       (live?'<span class="nowtag">Now</span>':'<span></span>')+
