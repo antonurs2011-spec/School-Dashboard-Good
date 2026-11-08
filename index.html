@@ -152,6 +152,7 @@ select option{background:#141415;color:#e9e7e2}
 .cnt .barsw input{width:16px;height:16px;padding:0;accent-color:var(--accent)}
 .code{font:500 11px var(--mono);letter-spacing:.08em;color:var(--muted)}
 .gname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gseg.off{visibility:hidden}
 .gseg{display:flex;width:87px;height:16px;border:1px solid var(--accent);border-radius:4px;overflow:hidden;background:var(--bg)}
 .gseg i{flex:0 0 17px;background:var(--bg);transform:skewX(-20deg)}
 .gseg i+i{border-left:1px solid var(--accent)}
@@ -608,9 +609,9 @@ function renderGrades(){
         '<button class="x" type="button" data-act="del-grade" data-id="'+esc(g.id)+'" aria-label="Delete grade">×</button></div>'}).join(""):
       '<div class="empty" style="padding:8px 0">No grades for this course yet.</div>';
     return '<div class="gc" data-course="'+esc(c.id)+'">'+
-      '<div class="gc-h'+(c.bar===false?" noseg":"")+'" role="button" tabindex="0" data-act="toggle-course" data-id="'+esc(c.id)+'" aria-expanded="'+open+'">'+
+      '<div class="gc-h" role="button" tabindex="0" data-act="toggle-course" data-id="'+esc(c.id)+'" aria-expanded="'+open+'">'+
         '<span class="code">'+esc(c.code)+'</span><span class="gname">'+esc(c.name)+'</span>'+
-        (c.bar===false?"":'<span class="gseg" role="img" aria-label="'+Math.min(5,+c.plus||0)+' of 5 pluses">'+[0,1,2,3,4].map(function(i){return '<i'+(i<(+c.plus||0)?' class="on"':'')+'></i>'}).join("")+'</span>')+
+        '<span class="gseg'+(c.bar===false?" off":"")+'" role="img" aria-label="'+Math.min(5,+c.plus||0)+' of 5 pluses">'+[0,1,2,3,4].map(function(i){return '<i'+(i<(+c.plus||0)?' class="on"':'')+'></i>'}).join("")+'</span>'+
         '<span class="gpct" data-pct="'+esc(c.id)+'">'+esc(fmtPct(a))+'</span>'+
         '<span class="gbtns"><button class="gbtn" type="button" data-act="cnt-minus" data-id="'+esc(c.id)+'" aria-label="Add a minus to '+esc(c.name)+'">− <span class="n">'+(+c.minus||0)+'</span></button>'+
         '<button class="gbtn" type="button" data-act="cnt-plus" data-id="'+esc(c.id)+'" aria-label="Add a plus to '+esc(c.name)+'">+ <span class="n">'+(+c.plus||0)+'</span></button></span>'+
@@ -1052,6 +1053,4 @@ setInterval(function(){renderHead();renderStats();renderSched()},60000);
 start();
 })();
 </script>
-
-</body>
-</html>
+</body></html>
