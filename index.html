@@ -410,7 +410,7 @@ var TYPES=[
   {id:"homework",label:"Homework",hex:"#d98a3d",rgb:"217,138,61"},
   {id:"test",label:"Test",hex:"#cf5a52",rgb:"207,90,82"},
   {id:"project",label:"Project",hex:"#5fa072",rgb:"95,160,114"},
-  {id:"listening",label:"Listening",hex:"#d9bc4a",rgb:"217,188,74"}
+  {id:"listening",label:"Listening",hex:"#e6cd66",rgb:"230,205,102"}
 ];
 var typeOf=function(t){for(var i=0;i<TYPES.length;i++)if(TYPES[i].id===(t&&t.type))return TYPES[i];return TYPES[0]};
 function typeOptions(sel,cur){sel.innerHTML=TYPES.map(function(k){return '<option value="'+k.id+'" style="color:'+k.hex+'"'+(k.id===cur?" selected":"")+'>'+k.label+'</option>'}).join("")}
@@ -656,7 +656,13 @@ function renderSched(){
       return nd>=0&&nd<=6&&dd.getDay()===+p.day;
     }).sort(function(a,b){return (a.due||"9999")<(b.due||"9999")?-1:1}):[];
     var tip=openT.map(function(t){return typeOf(t).label+": "+t.title+(t.note?" — "+t.note:"")}).join("\n");
-    return gapH+'<div class="per'+(live?" now":"")+(openT.length?" tint":"")+'"'+(openT.length?' style="--kr:'+typeOf(openT[0]).rgb+'" title="'+esc(tip)+'"':"")+'>'+
+    var tys=[],seenT={};
+    openT.forEach(function(t){var k=typeOf(t);if(!seenT[k.id]){seenT[k.id]=1;tys.push(k)}});
+    var bg=tys.map(function(k,i){
+      var pos=tys.length>1?(i/(tys.length-1)*100):0;
+      return 'linear-gradient(90deg,rgba('+k.rgb+',.26),rgba('+k.rgb+',0) 40%) 0 '+pos+'%/100% '+(100/tys.length+(tys.length>1?2:0))+'% no-repeat';
+    }).join(",");
+    return gapH+'<div class="per'+(live?" now":"")+(openT.length?" tint":"")+'"'+(openT.length?' style="background:'+bg+'" title="'+esc(tip)+'"':"")+'>'+
       '<div class="pt">'+esc(p.start)+'<br><span>'+esc(p.end)+'</span></div>'+
       '<div class="pn"><b>'+esc(c?c.name:"Class")+'</b><input class="ghost tch" type="text" value="'+esc(p.teacher||"")+'" placeholder="Add teacher" data-f="period-teacher" data-id="'+esc(p.id)+'" aria-label="Teacher"></div>'+
       (live?'<span class="nowtag">Now</span>':'<span></span>')+
