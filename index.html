@@ -26,6 +26,7 @@
   --accent:#988558;
   --accent-ink:#0b0b0c;
   --accent-soft:rgba(152,133,88,.14);
+  --accent-hi:#cbb887;
   --display:"Instrument Serif",Georgia,"Times New Roman",serif;
   --body:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -169,7 +170,10 @@ select option{background:#141415;color:#e9e7e2}
 
 /* schedule */
 .tabs{display:flex;gap:2px;margin-top:6px;border-bottom:1px solid var(--line)}
-.tab{background:transparent;border:0;border-bottom:2px solid transparent;color:var(--dim);padding:10px 12px;font:500 12px var(--mono);letter-spacing:.06em;margin-bottom:-1px}
+.tab{position:relative;background:transparent;border:0;border-bottom:2px solid transparent;color:var(--dim);padding:10px 12px 16px;font:500 12px var(--mono);letter-spacing:.06em;margin-bottom:-1px}
+.tab.has,.tab[aria-selected=true].has{color:var(--accent-hi)}
+.tdots{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);display:flex;gap:3px;pointer-events:none}
+.tdots i{display:block;width:6px;height:6px;border-radius:50%;background:var(--c)}
 .tab:hover{color:var(--fg)}
 .tab[aria-selected=true]{color:var(--fg);border-bottom-color:var(--accent)}
 .tab.is-today::after{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);margin-left:6px;vertical-align:middle}
@@ -624,7 +628,18 @@ function updateGradeDom(){
 }
 function renderSched(){
   $("#tabs").innerHTML=[1,2,3,4,5].map(function(d){
-    return '<button class="tab'+(d===new Date().getDay()?" is-today":"")+'" type="button" role="tab" aria-selected="'+(d===selDay)+'" data-act="tab" data-day="'+d+'">'+DAYS[d]+'</button>';
+    var due=S.tasks.filter(function(t){
+      if(t.done)return false;
+      var dd=parse(t.due);if(!dd)return false;
+      var nd=diffDays(dd,new Date());
+      return nd>=0&&nd<=6&&dd.getDay()===d;
+    }).sort(function(a,b){return a.due<b.due?-1:a.due>b.due?1:0});
+    var seen={},types=[];
+    due.forEach(function(t){var k=typeOf(t);if(!seen[k.id]){seen[k.id]=1;types.push(k)}});
+    var tip=due.length?due.length+(due.length===1?" assignment":" assignments")+" due: "+due.map(function(t){return t.title}).join(", "):"";
+    return '<button class="tab'+(d===new Date().getDay()?" is-today":"")+(due.length?" has":"")+'" type="button" role="tab" aria-selected="'+(d===selDay)+'" data-act="tab" data-day="'+d+'"'+
+      (due.length?' title="'+esc(tip)+'" aria-label="'+DAYS[d]+', '+esc(tip)+'"':"")+'>'+DAYS[d]+
+      (due.length?'<span class="tdots" aria-hidden="true">'+types.map(function(k){return '<i style="--c:'+k.hex+'"></i>'}).join("")+'</span>':"")+'</button>';
   }).join("");
   var ps=S.schedule.filter(function(p){return +p.day===selDay}).sort(byStart);
   var now=new Date(),nowM=now.getHours()*60+now.getMinutes(),isToday=selDay===now.getDay();
