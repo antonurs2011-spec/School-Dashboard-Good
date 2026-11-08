@@ -97,6 +97,7 @@ details.add>summary{cursor:pointer;font:500 12px var(--mono);letter-spacing:.06e
 details.add>summary::-webkit-details-marker{display:none}
 details.add>summary::before{content:"+ "}
 details.add[open]>summary::before{content:"− "}
+details.add[open]>summary .shw,details.add:not([open])>summary .hid{display:none}
 
 /* tasks */
 .grip{width:18px;height:30px;border:0;background:transparent;color:var(--dim);cursor:grab;touch-action:none;font:400 14px/1 var(--mono);letter-spacing:-3px;padding:0;user-select:none;-webkit-user-select:none}
@@ -221,12 +222,16 @@ select option{background:#141415;color:#e9e7e2}
 .wdots i.on{background:var(--accent);border-color:var(--accent)}
 .wdots i.now{border-color:var(--accent-hi);background:rgba(203,184,135,.35)}
 .wdl{font:400 11px var(--mono);color:var(--dim);margin-top:6px}
-.cd{padding:16px 0 14px;border-bottom:1px solid var(--line)}
-.cd-h{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.cd{padding:16px;margin-top:14px;border:1px solid rgba(152,133,88,.55);border-radius:8px}
+.cd-h .x{border:1px solid var(--line-2);color:var(--muted);width:34px;height:34px;font-size:20px}
+.cd-h .x:hover{color:var(--fg);border-color:var(--accent)}
+.cd-dates{margin-top:10px}
+.cd-h{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center}
 .cd-h .ghost{font:500 15px var(--sans,inherit)}
 .cd-dates{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
 .cd-dates label{display:flex;align-items:center;gap:6px;font:400 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
 .cd-dates input{padding:5px 8px;font-size:12px}
+.cd-dates .cd-cal input{width:16px;height:16px;padding:0;accent-color:var(--accent)}
 .cd .tabs{margin-top:8px}
 .cd .tab{padding:8px 12px 10px}
 .cd-n{font:400 clamp(56px,10vw,80px)/1 var(--display);letter-spacing:-.02em;margin-top:14px;font-variant-numeric:tabular-nums}
@@ -235,6 +240,40 @@ select option{background:#141415;color:#e9e7e2}
 .cd-p{display:flex;align-items:center;gap:10px;margin-top:12px}
 .cd-p .bar{flex:1}
 .cd-p span{font:400 12px var(--mono);color:var(--dim)}
+/* calendar */
+.cl-top{display:flex;align-items:center;gap:8px}
+.cl-nb{background:transparent;border:1px solid var(--line-2);border-radius:6px;min-width:32px;height:30px;padding:0 10px;color:var(--muted);font:500 11px var(--mono)}
+.cl-nb:hover{color:var(--fg);border-color:var(--accent)}
+.cl-month{font:400 26px/1.1 var(--display);margin:14px 0 0}
+.cl-chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.cl-chip{display:inline-flex;align-items:center;gap:8px;background:transparent;border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+.cl-chip i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.cl-chip[aria-pressed=true]{color:var(--fg);border-color:var(--accent)}
+.cl-chip[aria-pressed=false] i{opacity:.3}
+.cl-next{font:400 12px var(--mono);color:var(--muted);margin:0 0 10px}
+.cl-dow,.cl-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cl-dow span{font:500 10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);text-align:center;padding:6px 0}
+.cl-cell{min-height:58px;background:transparent;border:1px solid var(--line);border-radius:6px;padding:6px 6px 4px;text-align:left;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.cl-cell.sch{background:rgba(152,133,88,.06)}
+.cl-cell.out{opacity:.38}
+.cl-cell:hover{border-color:var(--line-2)}
+.cl-cell .n{font:500 12px var(--mono);color:var(--muted)}
+.cl-cell.today .n{color:var(--bg);background:var(--accent-hi);border-radius:999px;padding:0 6px}
+.cl-cell.sel{border-color:var(--accent-hi);box-shadow:0 0 0 1px var(--accent-hi)}
+.cl-dots{display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+.cl-dots i{width:7px;height:7px;border-radius:50%;background:var(--c)}
+.cl-dots i.bd{background:transparent;border:2px solid var(--c);width:8px;height:8px}
+.cl-dots em{font:400 10px var(--mono);color:var(--dim);font-style:normal}
+.cl-day{margin-top:18px;border-top:1px solid var(--line-2);padding-top:12px}
+.cl-day h3{margin:0 0 6px;font:500 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.cl-it{display:grid;grid-template-columns:4px minmax(0,1fr) auto;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.cl-it .bar{align-self:stretch;border-radius:2px;background:var(--c)}
+.cl-it b{font-weight:500}
+.cl-it small{display:block;font:400 11px var(--mono);color:var(--dim)}
+.clform{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0 6px}
+.clform .full{grid-column:1/-1}
+.clform label{display:flex;flex-direction:column;gap:5px;font:400 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.clform label input,.clform label select,.clform label textarea{text-transform:none;letter-spacing:0;font:400 14px var(--body);color:var(--fg)}
 /* notes */
 #notes{width:100%;min-height:190px;resize:vertical;margin-top:14px;padding:14px;line-height:1.6;border-radius:8px}
 
@@ -266,6 +305,7 @@ select option{background:#141415;color:#e9e7e2}
   section[data-w="grades"]{order:3}
   section[data-w="notes"]{order:4}
   section[data-w="countdowns"]{order:5}
+  section[data-w="calendar"]{order:6}
 }
 @media (max-width:720px){
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -345,7 +385,10 @@ select option{background:#141415;color:#e9e7e2}
             <button class="btn primary" type="submit">Add</button>
           </form>
         </details>
-        <div id="gradeList"></div>
+        <details class="add" id="gradeShow" open>
+          <summary><span class="shw">Show</span><span class="hid">Hide</span> courses</summary>
+          <div id="gradeList"></div>
+        </details>
       </section>
     </div>
 
@@ -389,6 +432,36 @@ select option{background:#141415;color:#e9e7e2}
           <p class="hint" id="cdMsg" role="status"></p>
         </details>
       </section>
+
+      <section data-w="calendar" aria-labelledby="hCal">
+        <div class="sec-h"><h2 id="hCal">Calendar</h2><span class="cl-top"><button class="cl-nb" type="button" data-act="cl-prev" aria-label="Previous month">‹</button><button class="cl-nb" type="button" data-act="cl-today">Today</button><button class="cl-nb" type="button" data-act="cl-next" aria-label="Next month">›</button></span></div>
+        <div class="cl-chips" id="clChips"></div>
+        <div class="cl-month" id="clMonth"></div>
+        <div id="clView"></div>
+        <div class="cl-day" id="clDay" hidden aria-live="polite"></div>
+        <details class="add" id="clEvAdd">
+          <summary>Add an event</summary>
+          <form class="clform" id="clEvForm" autocomplete="off">
+            <label class="full">Title<input id="ceT" type="text" required placeholder="Parent-teacher meeting"></label>
+            <label>Date<input id="ceD" type="date" required></label>
+            <label>Ends (optional)<input id="ceE" type="date"></label>
+            <label>Time (optional)<input id="ceH" type="time"></label>
+            <label>Repeat<select id="ceR"><option value="none">Does not repeat</option><option value="weekly">Every week</option><option value="monthly">Every month</option><option value="yearly">Every year</option></select></label>
+            <label>Color<select id="ceC"></select></label>
+            <label class="full">Notes (optional)<textarea id="ceN" rows="2"></textarea></label>
+            <div class="full"><button class="btn primary" type="submit">Add event</button></div>
+          </form>
+        </details>
+        <details class="add" id="clBdAdd">
+          <summary>Add a birthday</summary>
+          <form class="clform" id="clBdForm" autocomplete="off">
+            <label class="full">Name<input id="cbN" type="text" required placeholder="Name"></label>
+            <label>Date of birth<input id="cbD" type="date" required></label>
+            <label>Color<select id="cbC"></select></label>
+            <div class="full"><button class="btn primary" type="submit">Add birthday</button></div>
+          </form>
+        </details>
+      </section>
     </div>
   </div>
 </div>
@@ -414,6 +487,7 @@ select option{background:#141415;color:#e9e7e2}
     <label class="chkrow"><input type="checkbox" id="wSchedule" data-w-toggle="schedule"> Timetable</label>
     <label class="chkrow"><input type="checkbox" id="wNotes" data-w-toggle="notes"> Notes</label>
     <label class="chkrow"><input type="checkbox" id="wCd" data-w-toggle="countdowns"> Countdowns</label>
+    <label class="chkrow"><input type="checkbox" id="wCal" data-w-toggle="calendar"> Calendar</label>
   </div>
 
   <div class="d-sec">
@@ -481,8 +555,8 @@ function byDue(a,b){
   var x=a.due||"9999",y=b.due||"9999";return x<y?-1:x>y?1:0;
 }
 function blank(){return {v:1,tv:1,name:"",gv:10,term:{label:"",start:"",end:""},
-  widgets:{tasks:true,grades:true,schedule:true,notes:true,countdowns:true},
-  courses:[],schedule:[],tasks:[],grades:[],counts:[],cdStyle:"a",notes:""}}
+  widgets:{tasks:true,grades:true,schedule:true,notes:true,countdowns:true,calendar:true},
+  courses:[],schedule:[],tasks:[],grades:[],counts:[],events:[],birthdays:[],calF:{task:true,event:true,bday:true,cd:true,school:true},cdStyle:"a",gHide:false,notes:""}}
 function normalize(d){
   var b=blank();d=d||{};
   b.name=String(d.name||"");
@@ -503,8 +577,12 @@ function normalize(d){
     return {id:g.id,course:g.course,title:g.title,score:sc,initial:!!g.initial};
   });
   b.gv=10;
-  b.counts=(Array.isArray(d.counts)?d.counts:[]).map(function(c){return {id:c.id||uid(),title:String(c.title||""),start:String(c.start||""),end:String(c.end||""),unit:["years","months","weeks","days"].indexOf(c.unit)>=0?c.unit:"days"}});
+  b.counts=(Array.isArray(d.counts)?d.counts:[]).map(function(c){return {id:c.id||uid(),title:String(c.title||""),start:String(c.start||""),end:String(c.end||""),made:String(c.made||cfmt(new Date())),cal:c.cal!==false,fold:!!c.fold,unit:["years","months","weeks","days"].indexOf(c.unit)>=0?c.unit:"days"}});
   b.cdStyle=["a","b"].indexOf(d.cdStyle)>=0?d.cdStyle:"a";
+  b.gHide=!!d.gHide;
+  b.events=(Array.isArray(d.events)?d.events:[]).map(function(v){return {id:v.id||uid(),title:String(v.title||""),date:String(v.date||""),end:String(v.end||""),time:String(v.time||""),repeat:["weekly","monthly","yearly"].indexOf(v.repeat)>=0?v.repeat:"none",color:String(v.color||"#cbb887"),notes:String(v.notes||"")}});
+  b.birthdays=(Array.isArray(d.birthdays)?d.birthdays:[]).map(function(v){return {id:v.id||uid(),name:String(v.name||""),date:String(v.date||""),color:String(v.color||"#c98aa8")}});
+  b.calF=Object.assign(b.calF,d.calF||{});
   b.notes=String(d.notes||"");
   b.updatedAt=String(d.updatedAt||"");
   return b;
@@ -623,6 +701,7 @@ function renderStats(){
    '<div class="stat"><div class="lab">Open</div><div class="val'+(late?" acc":"")+'">'+open.length+'</div><div class="sub">'+(late?late+" overdue":open.length?"none overdue":"nothing to do")+'</div></div>'+
    '<div class="stat"><div class="lab">Due in 7 days</div><div class="val">'+week.length+'</div><div class="sub">'+(week.length?"next: "+esc(week[0].title):"clear week")+'</div></div>'+
    '<div class="stat"><div class="lab">Next class</div><div class="val">'+(nx?esc(nx.p.start):"—")+'</div><div class="sub">'+esc(nxSub)+'</div></div>';
+  renderCal();
 }
 function renderTasks(){
   var list=S.tasks.filter(function(t){return !t.done}).concat(S.tasks.filter(function(t){return t.done}));
@@ -758,7 +837,7 @@ function fillProfile(){
   $("#fStart").value=S.term.start||"";$("#fEnd").value=S.term.end||"";
 }
 function renderAll(){
-  renderHead();renderStats();renderTasks();renderGrades();renderSched();renderCd();fillSelects();applyWidgets();
+  renderHead();renderStats();renderTasks();renderGrades();renderSched();renderCd();fillSelects();applyWidgets();$("#gradeShow").open=!S.gHide;
   var nt=$("#notes");if(document.activeElement!==nt)nt.value=S.notes;
   if(!$("#drawer").hidden){fillProfile();renderCourseEd();$("#json").value=JSON.stringify(S,null,2)}
 }
@@ -795,8 +874,16 @@ document.addEventListener("click",function(e){
   }
   else if(a==="toggle-init"){var tg=S.grades.find(function(k){return k.id===id});if(tg){tg.initial=!tg.initial;renderGrades();renderStats();touch()}}
   else if(a==="del-grade"){S.grades=S.grades.filter(function(k){return k.id!==id});renderGrades();renderStats();touch()}
+  else if(a==="cl-day"){var dd=t.dataset.d;calSel=calSel===dd?null:dd;if(calSel)$("#ceD").value=calSel;renderCal()}
+  else if(a==="cl-prev"){calCur=new Date(calCur.getFullYear(),calCur.getMonth()-1,1);renderCal()}
+  else if(a==="cl-next"){calCur=new Date(calCur.getFullYear(),calCur.getMonth()+1,1);renderCal()}
+  else if(a==="cl-today"){var tt=new Date();calCur=new Date(tt.getFullYear(),tt.getMonth(),1);calSel=cfmt(tt);$("#ceD").value=calSel;renderCal()}
+  else if(a==="cl-filter"){S.calF[t.dataset.k]=!S.calF[t.dataset.k];renderCal();touch()}
+  else if(a==="cl-del-ev"){S.events=S.events.filter(function(k){return k.id!==id});renderCal();touch()}
+  else if(a==="cl-del-bd"){S.birthdays=S.birthdays.filter(function(k){return k.id!==id});renderCal();touch()}
   else if(a==="cd-unit"){var cu=S.counts.find(function(k){return k.id===id});if(cu){cu.unit=t.dataset.u;renderCd();touch()}}
   else if(a==="cd-style"){S.cdStyle={a:"b",b:"a"}[S.cdStyle]||"a";renderCd();touch()}
+  else if(a==="cd-fold"){var cf=S.counts.find(function(k){return k.id===id});if(cf){cf.fold=!cf.fold;renderCd();touch()}}
   else if(a==="cd-del"){S.counts=S.counts.filter(function(k){return k.id!==id});renderCd();touch()}
   else if(a==="tab"){selDay=+t.dataset.day;renderSched()}
   else if(a==="del-period"){S.schedule=S.schedule.filter(function(k){return k.id!==id});renderSched();renderStats();touch()}
@@ -846,6 +933,7 @@ document.addEventListener("change",function(e){
     var nb=document.querySelector('input[data-f="cnt-bar"][data-id="'+cb.id+'"]');if(nb)nb.focus();
     return;
   }
+  if(f==="cd-cal"){var cl=S.counts.find(function(k){return k.id===t.dataset.id});if(cl){cl.cal=t.checked;renderCal();touch()}return}
   if(f==="cd-start"||f==="cd-end"){
     var cc=S.counts.find(function(k){return k.id===t.dataset.id});if(!cc)return;
     cc[f==="cd-start"?"start":"end"]=t.value;renderCd();touch();return;
@@ -894,13 +982,28 @@ $("#periodForm").addEventListener("submit",function(e){
   renderSched();renderStats();touch();
 });
 $("#notes").addEventListener("input",function(e){S.notes=e.target.value;touch()});
+$("#gradeShow").addEventListener("toggle",function(){var h=!$("#gradeShow").open;if(h!==!!S.gHide){S.gHide=h;touch()}});
+$("#clEvForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  var t=$("#ceT").value.trim(),d=$("#ceD").value,en=$("#ceE").value;if(!t||!d)return;
+  if(en&&en<d)en=d;
+  S.events.push({id:uid(),title:t,date:d,end:en,time:$("#ceH").value,repeat:$("#ceR").value,color:$("#ceC").value,notes:$("#ceN").value.trim()});
+  $("#ceT").value="";$("#ceE").value="";$("#ceH").value="";$("#ceN").value="";$("#ceR").value="none";
+  var pd=parse(d);calCur=new Date(pd.getFullYear(),pd.getMonth(),1);calSel=d;renderCal();touch();
+});
+$("#clBdForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  var n=$("#cbN").value.trim(),d=$("#cbD").value;if(!n||!d)return;
+  S.birthdays.push({id:uid(),name:n,date:d,color:$("#cbC").value});
+  $("#cbN").value="";$("#cbD").value="";S.calF.bday=true;renderCal();touch();
+});
 $("#cdForm").addEventListener("submit",function(e){
   e.preventDefault();
   var t=$("#cdTitle").value.trim(),a=$("#cdStart").value,b=$("#cdEnd").value;
   if(!t||!a||!b)return;
   if(b<a){$("#cdMsg").textContent="The end date must be on or after the start date.";return}
   $("#cdMsg").textContent="";
-  S.counts.push({id:uid(),title:t,start:a,end:b,unit:"days"});
+  S.counts.push({id:uid(),title:t,start:a,end:b,made:cfmt(new Date()),unit:"days"});
   $("#cdTitle").value="";$("#cdStart").value="";$("#cdEnd").value="";
   renderCd();touch();$("#cdTitle").focus();
 });
@@ -917,12 +1020,10 @@ function cdSplit(a,b){
 function cdCalc(c){
   var s=parse(c.start),e=parse(c.end),t=sod(new Date());
   if(!s||!e||e<s)return null;
-  var total=diffDays(e,s),gone=diffDays(t,s),left=Math.max(0,diffDays(e,t));
-  var from=t<s?s:t,to=e,r=t>=e?{y:0,m:0,w:0,d:0}:cdSplit(from,to);
-  var pct=total<=0?100:Math.max(0,Math.min(100,gone/total*100));
+  var total=diffDays(e,s),left=Math.max(0,diffDays(e,t)),done=t>e,r=t<e?cdSplit(t,e):{y:0,m:0,w:0,d:0};
+  var pct=total<=0?(done?100:0):Math.max(0,Math.min(100,diffDays(t,s)/total*100));
   var mo=r.y*12+r.m+r.d/30.44+r.w*7/30.44;
-  if(t<s){left=diffDays(e,s);}
-  return {r:r,left:left,pct:pct,mo:mo,before:t<s,done:t>=e,startsIn:diffDays(s,t)};
+  return {r:r,left:left,pct:pct,mo:mo,total:total,done:done,before:t<s,startsIn:diffDays(s,t)};
 }
 function cdBig(c,k,noLeft){
   var u=c.unit||"days",v,lab;
@@ -934,7 +1035,10 @@ function cdBig(c,k,noLeft){
 }
 function cdPl(n,w){return n+" "+w+(n===1?"":"s")}
 function renderCd(){
-  var list=S.counts||[];
+  var list=(S.counts||[]).slice().sort(function(a,b){
+    function key(c){var k=cdCalc(c);if(!k)return 1e9;if(k.done)return 1e8;return k.left}
+    return key(a)-key(b)||String(a.title).localeCompare(String(b.title));
+  });
   $("#cdStyle").textContent="Style "+S.cdStyle.toUpperCase();
   $("#cdMeta").textContent=list.length?list.length+(list.length===1?" countdown":" countdowns"):"";
   $("#cdList").innerHTML=list.length?list.map(function(c){
@@ -942,29 +1046,82 @@ function renderCd(){
     var tabs=CDU.map(function(u){return '<button class="tab" type="button" role="tab" aria-selected="'+((c.unit||"days")===u[0])+'" data-act="cd-unit" data-id="'+esc(c.id)+'" data-u="'+u[0]+'">'+u[1]+'</button>'}).join("");
     var body;
     if(!k)body='<p class="hint" style="margin-top:12px">Check the dates: the end must be on or after the start.</p>';
-
-    else if(S.cdStyle==="b"){
-      var r2=k.r,C=2*Math.PI*54,big=k.done?"0":cdBig(c,k,true).replace(/<small>(.*?)<\/small>/,"</b><i>$1</i>");
-      var tw=Math.max(1,Math.ceil(diffDays(parse(c.end),parse(c.start))/7)),byM=tw>78,n=byM?Math.max(1,Math.round(diffDays(parse(c.end),parse(c.start))/30.44)):tw;
-      var el=Math.min(n,Math.floor(k.pct/100*n)),dots="";
-      for(var q=0;q<n;q++)dots+='<i class="'+(q<el?"on":q===el&&!k.done&&!k.before?"now":"")+'"></i>';
-      if(k.done)dots=dots.replace(/<i class="[^"]*">/g,'<i class="on">');
-      body='<div class="cdb"><div class="ring" aria-live="polite"><svg viewBox="0 0 120 120"><circle class="tr" cx="60" cy="60" r="54"/><circle class="fg" cx="60" cy="60" r="54" stroke-dasharray="'+(C*k.pct/100).toFixed(1)+' '+C.toFixed(1)+'"/></svg><div class="mid"><b>'+big+(k.done?"</b><i>days</i>":"")+'<em class="lf">left</em></div></div>'+
-        '<div class="ymw"><div class="ymwd"><div><b>'+r2.y+'</b><span>years</span></div><div><b>'+r2.m+'</b><span>months</span></div><div><b>'+r2.w+'</b><span>weeks</span></div><div><b>'+r2.d+'</b><span>days</span></div></div><em class="lf">left</em></div></div>'+
-        '<div class="wdots" role="img" aria-label="'+Math.round(k.pct)+'% elapsed">'+dots+'</div><div class="wdl">'+(k.before?"Starts in "+cdPl(k.startsIn,"day")+" · ":"")+Math.round(k.pct)+'% done · 1 square = 1 '+(byM?"month":"week")+'</div>';
-    }
     else{
-      var r=k.r;
-      var line=k.done?"Finished":(k.before?"Starts in "+cdPl(k.startsIn,"day")+" · ":"")+(k.done?"":cdPl(r.y,"year")+" · "+cdPl(r.m,"month")+" · "+cdPl(r.w,"week")+" · "+cdPl(r.d,"day")+" left");
-      body='<div class="cd-n" aria-live="polite">'+(k.done?"0<small>days</small><em class=\"lf\">left</em>":cdBig(c,k))+'</div><div class="cd-b">'+line+'</div>'+
-        '<div class="cd-p"><div class="bar"><i style="width:'+k.pct.toFixed(1)+'%"></i></div><span>'+Math.round(k.pct)+'%</span></div>';
+      var cap=k.done?"Finished":k.before?"Starts in "+cdPl(k.startsIn,"day")+" · "+cdPl(k.total,"day")+" in total":k.left+" of "+cdPl(k.total,"day")+" left";
+      if(S.cdStyle==="b"){
+        var r2=k.r,C=2*Math.PI*54,big=k.done?"Done</b>":cdBig(c,k,true).replace(/<small>(.*?)<\/small>/,"</b><i>$1</i>");
+        var tw=Math.max(1,Math.ceil(k.total/7)),byM=tw>78,n=byM?Math.max(1,Math.round(k.total/30.44)):tw;
+        var el=Math.min(n,Math.floor(k.pct/100*n)),dots="";
+        for(var q=0;q<n;q++)dots+='<i class="'+(q<el||k.done?"on":q===el&&!k.before?"now":"")+'"></i>';
+        body='<div class="cdb"><div class="ring" aria-live="polite"><svg viewBox="0 0 120 120"><circle class="tr" cx="60" cy="60" r="54"/><circle class="fg" cx="60" cy="60" r="54" stroke-dasharray="'+(C*k.pct/100).toFixed(1)+' '+C.toFixed(1)+'"/></svg><div class="mid"><b>'+big+(k.done?"":'<em class="lf">left</em>')+'</div></div>'+
+          '<div class="ymw">'+(k.done?'<div class="cd-b" style="margin:0">Finished</div>':'<div class="ymwd"><div><b>'+r2.y+'</b><span>years</span></div><div><b>'+r2.m+'</b><span>months</span></div><div><b>'+r2.w+'</b><span>weeks</span></div><div><b>'+r2.d+'</b><span>days</span></div></div><em class="lf">left</em>')+'</div></div>'+
+          '<div class="wdots" role="img" aria-label="'+Math.round(k.pct)+'% elapsed">'+dots+'</div><div class="wdl">'+cap+' · 1 square = 1 '+(byM?"month":"week")+'</div>';
+      }else{
+        var r=k.r;
+        var line=k.done?"Finished":cdPl(r.y,"year")+" · "+cdPl(r.m,"month")+" · "+cdPl(r.w,"week")+" · "+cdPl(r.d,"day")+" left";
+        body='<div class="cd-n" aria-live="polite">'+(k.done?"Done":cdBig(c,k))+'</div><div class="cd-b">'+line+'</div>'+
+          '<div class="cd-p"><div class="bar"><i style="width:'+k.pct.toFixed(1)+'%"></i></div><span>'+Math.round(k.pct)+'%</span></div><div class="cd-b" style="margin-top:6px">'+cap+'</div>';
+      }
     }
-    return '<div class="cd"><div class="cd-h"><input class="ghost" type="text" value="'+esc(c.title)+'" data-f="cd-title" data-id="'+esc(c.id)+'" aria-label="Countdown name"><button class="x" type="button" data-act="cd-del" data-id="'+esc(c.id)+'" aria-label="Delete countdown">×</button></div>'+
-      '<div class="cd-dates"><label>Start <input type="date" value="'+esc(c.start)+'" data-f="cd-start" data-id="'+esc(c.id)+'"></label><label>End <input type="date" value="'+esc(c.end)+'" data-f="cd-end" data-id="'+esc(c.id)+'"></label></div>'+
-      '<div class="tabs" role="tablist" aria-label="Unit">'+tabs+'</div>'+body+'</div>';
+    var fold=!!c.fold;
+    return '<div class="cd"><div class="cd-h"><input class="ghost" type="text" value="'+esc(c.title)+'" data-f="cd-title" data-id="'+esc(c.id)+'" aria-label="Countdown name"><button class="cd-st" type="button" data-act="cd-fold" data-id="'+esc(c.id)+'" aria-expanded="'+!fold+'">'+(fold?"Show details":"Hide details")+'</button><button class="x" type="button" data-act="cd-del" data-id="'+esc(c.id)+'" aria-label="Delete countdown">×</button></div>'+
+      (fold?"":'<div class="cd-dates"><label>Start <input type="date" value="'+esc(c.start)+'" data-f="cd-start" data-id="'+esc(c.id)+'"></label><label>End <input type="date" value="'+esc(c.end)+'" data-f="cd-end" data-id="'+esc(c.id)+'"></label><label class="cd-cal"><input type="checkbox" data-f="cd-cal" data-id="'+esc(c.id)+'"'+(c.cal===false?"":" checked")+'> Show in calendar</label></div>'+
+      '<div class="tabs" role="tablist" aria-label="Unit">'+tabs+'</div>')+body+'</div>';
   }).join(""):'<p class="hint" style="margin-top:14px">No countdowns yet. Add one with a start and end date.</p>';
+  renderCal();
 }
 setInterval(function(){var a=document.activeElement;if(!(a&&a.closest&&a.closest("#cdList")))renderCd()},60000);
+
+
+/* calendar */
+var CALCOL=[["#cbb887","Brown"],["#9a9aa0","Grey"],["#6f9bd1","Blue"],["#9b86c9","Violet"],["#c98aa8","Pink"],["#62b8c9","Cyan"]];
+var calCur=(function(){var t=new Date();return new Date(t.getFullYear(),t.getMonth(),1)})(),calSel=null;
+function cfmt(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+var cadd=function(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n)};
+var cmd=function(d){return (d.getDay()+6)%7};
+function calHits(ev,d){
+  var s=parse(ev.date);if(!s||d<s)return false;
+  if(ev.repeat==="weekly")return cmd(d)===cmd(s);
+  if(ev.repeat==="monthly")return d.getDate()===s.getDate();
+  if(ev.repeat==="yearly")return d.getDate()===s.getDate()&&d.getMonth()===s.getMonth();
+  var e=parse(ev.end)||s;return d<=e;
+}
+function calItems(ds){
+  var d=parse(ds),out=[],F=S.calF;
+  if(F.task)S.tasks.forEach(function(t){if(t.due===ds&&!t.done){var ty=typeOf(t),c=course(t.course);out.push({k:"task",t:t.title||"Assignment",c:ty.hex,sub:ty.label+(c?" · "+c.name:""),o:0})}});
+  if(F.event)S.events.forEach(function(ev){if(calHits(ev,d)){
+    var e=parse(ev.end),rp=ev.repeat==="weekly"?"Weekly":ev.repeat==="monthly"?"Monthly":ev.repeat==="yearly"?"Yearly":"";
+    out.push({k:"event",id:ev.id,t:ev.title,c:ev.color,sub:[ev.time,rp,(e&&ev.repeat==="none")?"until "+e.getDate()+" "+MONTHS[e.getMonth()]:"",ev.notes].filter(Boolean).join(" · ")||"Event",o:ev.time?1:2,time:ev.time})}});
+  if(F.bday)S.birthdays.forEach(function(b){var s=parse(b.date);if(s&&d>=s&&s.getDate()===d.getDate()&&s.getMonth()===d.getMonth()){
+    var age=d.getFullYear()-s.getFullYear();out.push({k:"bday",id:b.id,t:b.name+"'s birthday",c:b.color,sub:age>0?"Turns "+age:"Birthday",o:2})}});
+  if(F.cd)S.counts.forEach(function(c){if(c.cal===false)return;if(c.start===ds)out.push({k:"cd",t:c.title+" starts",c:"#9a9aa0",sub:"Countdown",o:3});if(c.end===ds)out.push({k:"cd",t:c.title+" ends",c:"#9a9aa0",sub:"Countdown",o:3})});
+  out.sort(function(a,b){return a.o-b.o||(a.time||"").localeCompare(b.time||"")});
+  return out;
+}
+function renderCal(){
+  if(!$("#clView"))return;
+  var F=S.calF,L=[["task","Assignments","#d98a3d"],["event","Events","#cbb887"],["bday","Birthdays","#c98aa8"],["cd","Countdowns","#9a9aa0"],["school","School days","#988558"]];
+  $("#clChips").innerHTML=L.map(function(c){return '<button class="cl-chip" type="button" style="--c:'+c[2]+'" aria-pressed="'+!!F[c[0]]+'" data-act="cl-filter" data-k="'+c[0]+'"><i></i>'+c[1]+'</button>'}).join("");
+  var td=sod(new Date());
+  $("#clMonth").textContent=["January","February","March","April","May","June","July","August","September","October","November","December"][calCur.getMonth()]+" "+calCur.getFullYear();
+  var schDays={};S.schedule.forEach(function(p){schDays[p.day]=1});if(!S.schedule.length)[1,2,3,4,5].forEach(function(x){schDays[x]=1});
+  var first=calCur,start=cadd(first,-cmd(first)),last=new Date(first.getFullYear(),first.getMonth()+1,0),rows=Math.ceil((cmd(first)+last.getDate())/7),cells="";
+  for(var i=0;i<rows*7;i++){
+    var d=cadd(start,i),ds=cfmt(d),its=calItems(ds),out=d.getMonth()!==first.getMonth();
+    var cls="cl-cell"+(out?" out":"")+(ds===cfmt(td)?" today":"")+(ds===calSel?" sel":"")+(F.school&&schDays[d.getDay()]?" sch":"");
+    var dots=its.slice(0,4).map(function(x){return '<i'+(x.k==="bday"?' class="bd"':"")+' style="--c:'+x.c+'"></i>'}).join("")+(its.length>4?'<em>+'+(its.length-4)+'</em>':"");
+    cells+='<button class="'+cls+'" type="button" data-act="cl-day" data-d="'+ds+'" aria-pressed="'+(ds===calSel)+'" aria-label="'+d.getDate()+' '+MONTHS[d.getMonth()]+', '+its.length+' items"><span class="n">'+d.getDate()+'</span><span class="cl-dots">'+dots+'</span></button>';
+  }
+  $("#clView").innerHTML='<div class="cl-dow">'+["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(function(x){return "<span>"+x+"</span>"}).join("")+'</div><div class="cl-grid">'+cells+'</div>';
+  var dp=$("#clDay");
+  if(!calSel){dp.hidden=true;dp.innerHTML="";return}
+  var sd=parse(calSel),its2=calItems(calSel);
+  dp.hidden=false;
+  dp.innerHTML='<h3>'+DAYFULL[sd.getDay()]+', '+sd.getDate()+' '+MONTHS[sd.getMonth()]+(calSel===cfmt(td)?" · today":"")+'</h3>'+
+    (its2.length?its2.map(function(x){return '<div class="cl-it" style="--c:'+x.c+'"><span class="bar"></span><div><b>'+esc(x.t)+'</b><small>'+esc(x.sub)+'</small></div>'+(x.k==="event"||x.k==="bday"?'<button class="x" type="button" data-act="'+(x.k==="event"?"cl-del-ev":"cl-del-bd")+'" data-id="'+esc(x.id)+'" aria-label="Delete">×</button>':'<span></span>')+'</div>'}).join(""):'<div class="empty">Nothing planned. Tap the day again to hide this.</div>');
+}
+function fillCalColors(){["#ceC","#cbC"].forEach(function(s){var el=$(s);if(el&&!el.options.length)el.innerHTML=CALCOL.map(function(c){return '<option value="'+c[0]+'">'+c[1]+'</option>'}).join("")})}
+fillCalColors();
 
 /* reorder assignments */
 var drag=null;
