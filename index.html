@@ -195,6 +195,46 @@ select option{background:#141415;color:#e9e7e2}
 .tsel b{font-weight:400;color:var(--dim)}
 .tsel .tl{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-right:2px}
 
+/* countdowns */
+.ymw{flex:1 1 180px}
+.ymw .ymwd{flex:none}
+.ymw .lf{display:block}
+.lf{font:italic 400 11px var(--display);letter-spacing:.02em;text-transform:none;color:var(--dim);margin-left:6px}
+.ring .mid .lf{margin:1px 0 0;font-size:11px}
+.ymw .lf{margin:8px 0 0}
+.cd-st{background:transparent;border:1px solid var(--line-2);color:var(--muted);border-radius:999px;font:500 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:4px 10px}
+.cdb{display:flex;flex-wrap:wrap;align-items:center;gap:18px 22px;margin-top:14px}
+.ring{position:relative;width:132px;height:132px;flex:0 0 132px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:6}
+.ring .tr{stroke:var(--line-2)}
+.ring .fg{stroke:var(--accent);stroke-linecap:round;transition:stroke-dasharray .4s}
+.ring .mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.ring .mid b{font:400 34px/1 var(--display);font-variant-numeric:tabular-nums}
+.ring .mid i{font:400 10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-style:normal;margin-top:4px}
+.ymwd{display:grid;grid-template-columns:repeat(4,auto);gap:4px 18px;flex:1 1 180px}
+.ymwd div{display:flex;flex-direction:column;gap:2px}
+.ymwd b{font:400 28px/1 var(--display);font-variant-numeric:tabular-nums}
+.ymwd span{font:400 10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.wdots{display:flex;flex-wrap:wrap;gap:3px;margin-top:14px}
+.wdots i{width:8px;height:8px;border-radius:2px;border:1px solid var(--line-2)}
+.wdots i.on{background:var(--accent);border-color:var(--accent)}
+.wdots i.now{border-color:var(--accent-hi);background:rgba(203,184,135,.35)}
+.wdl{font:400 11px var(--mono);color:var(--dim);margin-top:6px}
+.cd{padding:16px 0 14px;border-bottom:1px solid var(--line)}
+.cd-h{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.cd-h .ghost{font:500 15px var(--sans,inherit)}
+.cd-dates{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.cd-dates label{display:flex;align-items:center;gap:6px;font:400 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.cd-dates input{padding:5px 8px;font-size:12px}
+.cd .tabs{margin-top:8px}
+.cd .tab{padding:8px 12px 10px}
+.cd-n{font:400 clamp(56px,10vw,80px)/1 var(--display);letter-spacing:-.02em;margin-top:14px;font-variant-numeric:tabular-nums}
+.cd-n small{font-size:.32em;color:var(--accent);margin-left:6px;letter-spacing:0}
+.cd-b{font-size:13px;color:var(--muted);margin-top:8px}
+.cd-p{display:flex;align-items:center;gap:10px;margin-top:12px}
+.cd-p .bar{flex:1}
+.cd-p span{font:400 12px var(--mono);color:var(--dim)}
 /* notes */
 #notes{width:100%;min-height:190px;resize:vertical;margin-top:14px;padding:14px;line-height:1.6;border-radius:8px}
 
@@ -225,6 +265,7 @@ select option{background:#141415;color:#e9e7e2}
   section[data-w="schedule"]{order:2}
   section[data-w="grades"]{order:3}
   section[data-w="notes"]{order:4}
+  section[data-w="countdowns"]{order:5}
 }
 @media (max-width:720px){
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -333,6 +374,21 @@ select option{background:#141415;color:#e9e7e2}
         <div class="sec-h"><h2 id="hNotes">Notes</h2><span class="meta">Saves as you type</span></div>
         <textarea id="notes" placeholder="Reminders, meeting times, things to bring…" aria-label="Notes"></textarea>
       </section>
+
+      <section data-w="countdowns" aria-labelledby="hCd">
+        <div class="sec-h"><h2 id="hCd">Countdowns</h2><span class="meta"><span id="cdMeta"></span> <button class="cd-st" type="button" data-act="cd-style" id="cdStyle"></button></span></div>
+        <div id="cdList"></div>
+        <details class="add" id="cdAdd">
+          <summary>Add a countdown</summary>
+          <form class="addrow" id="cdForm" autocomplete="off">
+            <input class="grow" id="cdTitle" type="text" placeholder="Name (e.g. Summer break)" aria-label="Countdown name" required>
+            <label class="chkrow" style="flex:0 0 auto;gap:6px">Start <input id="cdStart" type="date" aria-label="Start date" required></label>
+            <label class="chkrow" style="flex:0 0 auto;gap:6px">End <input id="cdEnd" type="date" aria-label="End date" required></label>
+            <button class="btn primary" type="submit">Add</button>
+          </form>
+          <p class="hint" id="cdMsg" role="status"></p>
+        </details>
+      </section>
     </div>
   </div>
 </div>
@@ -357,6 +413,7 @@ select option{background:#141415;color:#e9e7e2}
     <label class="chkrow"><input type="checkbox" id="wGrades" data-w-toggle="grades"> Grades</label>
     <label class="chkrow"><input type="checkbox" id="wSchedule" data-w-toggle="schedule"> Timetable</label>
     <label class="chkrow"><input type="checkbox" id="wNotes" data-w-toggle="notes"> Notes</label>
+    <label class="chkrow"><input type="checkbox" id="wCd" data-w-toggle="countdowns"> Countdowns</label>
   </div>
 
   <div class="d-sec">
@@ -424,8 +481,8 @@ function byDue(a,b){
   var x=a.due||"9999",y=b.due||"9999";return x<y?-1:x>y?1:0;
 }
 function blank(){return {v:1,tv:1,name:"",gv:10,term:{label:"",start:"",end:""},
-  widgets:{tasks:true,grades:true,schedule:true,notes:true},
-  courses:[],schedule:[],tasks:[],grades:[],notes:""}}
+  widgets:{tasks:true,grades:true,schedule:true,notes:true,countdowns:true},
+  courses:[],schedule:[],tasks:[],grades:[],counts:[],cdStyle:"a",notes:""}}
 function normalize(d){
   var b=blank();d=d||{};
   b.name=String(d.name||"");
@@ -446,6 +503,8 @@ function normalize(d){
     return {id:g.id,course:g.course,title:g.title,score:sc,initial:!!g.initial};
   });
   b.gv=10;
+  b.counts=(Array.isArray(d.counts)?d.counts:[]).map(function(c){return {id:c.id||uid(),title:String(c.title||""),start:String(c.start||""),end:String(c.end||""),unit:["years","months","weeks","days"].indexOf(c.unit)>=0?c.unit:"days"}});
+  b.cdStyle=["a","b"].indexOf(d.cdStyle)>=0?d.cdStyle:"a";
   b.notes=String(d.notes||"");
   b.updatedAt=String(d.updatedAt||"");
   return b;
@@ -699,7 +758,7 @@ function fillProfile(){
   $("#fStart").value=S.term.start||"";$("#fEnd").value=S.term.end||"";
 }
 function renderAll(){
-  renderHead();renderStats();renderTasks();renderGrades();renderSched();fillSelects();applyWidgets();
+  renderHead();renderStats();renderTasks();renderGrades();renderSched();renderCd();fillSelects();applyWidgets();
   var nt=$("#notes");if(document.activeElement!==nt)nt.value=S.notes;
   if(!$("#drawer").hidden){fillProfile();renderCourseEd();$("#json").value=JSON.stringify(S,null,2)}
 }
@@ -736,6 +795,9 @@ document.addEventListener("click",function(e){
   }
   else if(a==="toggle-init"){var tg=S.grades.find(function(k){return k.id===id});if(tg){tg.initial=!tg.initial;renderGrades();renderStats();touch()}}
   else if(a==="del-grade"){S.grades=S.grades.filter(function(k){return k.id!==id});renderGrades();renderStats();touch()}
+  else if(a==="cd-unit"){var cu=S.counts.find(function(k){return k.id===id});if(cu){cu.unit=t.dataset.u;renderCd();touch()}}
+  else if(a==="cd-style"){S.cdStyle={a:"b",b:"a"}[S.cdStyle]||"a";renderCd();touch()}
+  else if(a==="cd-del"){S.counts=S.counts.filter(function(k){return k.id!==id});renderCd();touch()}
   else if(a==="tab"){selDay=+t.dataset.day;renderSched()}
   else if(a==="del-period"){S.schedule=S.schedule.filter(function(k){return k.id!==id});renderSched();renderStats();touch()}
   else if(a==="del-course"){
@@ -764,6 +826,8 @@ document.addEventListener("input",function(e){
     var g=S.grades.find(function(k){return k.id===id});if(!g)return;
     var k=f.slice(6);g[k]=k==="title"?t.value:(t.value===""?"":Math.max(0,Math.min(10,+t.value)));
     updateGradeDom();renderStats();touch();
+  }else if(f==="cd-title"){
+    var ct=S.counts.find(function(k){return k.id===id});if(ct){ct.title=t.value;touch()}
   }else if(f==="period-teacher"){
     var pp=S.schedule.find(function(k){return k.id===id});if(pp){pp.teacher=t.value;touch()}
   }else if(f==="cnt-plus"||f==="cnt-minus"){
@@ -781,6 +845,10 @@ document.addEventListener("change",function(e){
     cb.bar=t.checked;renderGrades();touch();
     var nb=document.querySelector('input[data-f="cnt-bar"][data-id="'+cb.id+'"]');if(nb)nb.focus();
     return;
+  }
+  if(f==="cd-start"||f==="cd-end"){
+    var cc=S.counts.find(function(k){return k.id===t.dataset.id});if(!cc)return;
+    cc[f==="cd-start"?"start":"end"]=t.value;renderCd();touch();return;
   }
   var x=S.tasks.find(function(k){return k.id===t.dataset.id});if(!x)return;
   if(f==="task-course"){x.course=t.value;afterTask();touch()}
@@ -826,6 +894,77 @@ $("#periodForm").addEventListener("submit",function(e){
   renderSched();renderStats();touch();
 });
 $("#notes").addEventListener("input",function(e){S.notes=e.target.value;touch()});
+$("#cdForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  var t=$("#cdTitle").value.trim(),a=$("#cdStart").value,b=$("#cdEnd").value;
+  if(!t||!a||!b)return;
+  if(b<a){$("#cdMsg").textContent="The end date must be on or after the start date.";return}
+  $("#cdMsg").textContent="";
+  S.counts.push({id:uid(),title:t,start:a,end:b,unit:"days"});
+  $("#cdTitle").value="";$("#cdStart").value="";$("#cdEnd").value="";
+  renderCd();touch();$("#cdTitle").focus();
+});
+
+
+/* countdowns */
+var CDU=[["years","Years"],["months","Months"],["weeks","Weeks"],["days","Days"]];
+function cdSplit(a,b){
+  var y=b.getFullYear()-a.getFullYear(),m=b.getMonth()-a.getMonth(),d=b.getDate()-a.getDate();
+  if(d<0){m--;d+=new Date(b.getFullYear(),b.getMonth(),0).getDate()}
+  if(m<0){y--;m+=12}
+  return {y:y,m:m,w:Math.floor(d/7),d:d%7};
+}
+function cdCalc(c){
+  var s=parse(c.start),e=parse(c.end),t=sod(new Date());
+  if(!s||!e||e<s)return null;
+  var total=diffDays(e,s),gone=diffDays(t,s),left=Math.max(0,diffDays(e,t));
+  var from=t<s?s:t,to=e,r=t>=e?{y:0,m:0,w:0,d:0}:cdSplit(from,to);
+  var pct=total<=0?100:Math.max(0,Math.min(100,gone/total*100));
+  var mo=r.y*12+r.m+r.d/30.44+r.w*7/30.44;
+  if(t<s){left=diffDays(e,s);}
+  return {r:r,left:left,pct:pct,mo:mo,before:t<s,done:t>=e,startsIn:diffDays(s,t)};
+}
+function cdBig(c,k,noLeft){
+  var u=c.unit||"days",v,lab;
+  if(u==="years"){v=(k.mo/12);v=v>=10?Math.round(v):Math.round(v*10)/10;lab=v===1?"year":"years"}
+  else if(u==="months"){v=Math.round(k.mo*10)/10;lab=v===1?"month":"months"}
+  else if(u==="weeks"){v=Math.round(k.left/7*10)/10;lab=v===1?"week":"weeks"}
+  else{v=k.left;lab=v===1?"day":"days"}
+  return String(v).replace(/\.0$/,"")+"<small>"+lab+"</small>"+(noLeft?"":"<em class=\"lf\">left</em>");
+}
+function cdPl(n,w){return n+" "+w+(n===1?"":"s")}
+function renderCd(){
+  var list=S.counts||[];
+  $("#cdStyle").textContent="Style "+S.cdStyle.toUpperCase();
+  $("#cdMeta").textContent=list.length?list.length+(list.length===1?" countdown":" countdowns"):"";
+  $("#cdList").innerHTML=list.length?list.map(function(c){
+    var k=cdCalc(c);
+    var tabs=CDU.map(function(u){return '<button class="tab" type="button" role="tab" aria-selected="'+((c.unit||"days")===u[0])+'" data-act="cd-unit" data-id="'+esc(c.id)+'" data-u="'+u[0]+'">'+u[1]+'</button>'}).join("");
+    var body;
+    if(!k)body='<p class="hint" style="margin-top:12px">Check the dates: the end must be on or after the start.</p>';
+
+    else if(S.cdStyle==="b"){
+      var r2=k.r,C=2*Math.PI*54,big=k.done?"0":cdBig(c,k,true).replace(/<small>(.*?)<\/small>/,"</b><i>$1</i>");
+      var tw=Math.max(1,Math.ceil(diffDays(parse(c.end),parse(c.start))/7)),byM=tw>78,n=byM?Math.max(1,Math.round(diffDays(parse(c.end),parse(c.start))/30.44)):tw;
+      var el=Math.min(n,Math.floor(k.pct/100*n)),dots="";
+      for(var q=0;q<n;q++)dots+='<i class="'+(q<el?"on":q===el&&!k.done&&!k.before?"now":"")+'"></i>';
+      if(k.done)dots=dots.replace(/<i class="[^"]*">/g,'<i class="on">');
+      body='<div class="cdb"><div class="ring" aria-live="polite"><svg viewBox="0 0 120 120"><circle class="tr" cx="60" cy="60" r="54"/><circle class="fg" cx="60" cy="60" r="54" stroke-dasharray="'+(C*k.pct/100).toFixed(1)+' '+C.toFixed(1)+'"/></svg><div class="mid"><b>'+big+(k.done?"</b><i>days</i>":"")+'<em class="lf">left</em></div></div>'+
+        '<div class="ymw"><div class="ymwd"><div><b>'+r2.y+'</b><span>years</span></div><div><b>'+r2.m+'</b><span>months</span></div><div><b>'+r2.w+'</b><span>weeks</span></div><div><b>'+r2.d+'</b><span>days</span></div></div><em class="lf">left</em></div></div>'+
+        '<div class="wdots" role="img" aria-label="'+Math.round(k.pct)+'% elapsed">'+dots+'</div><div class="wdl">'+(k.before?"Starts in "+cdPl(k.startsIn,"day")+" · ":"")+Math.round(k.pct)+'% done · 1 square = 1 '+(byM?"month":"week")+'</div>';
+    }
+    else{
+      var r=k.r;
+      var line=k.done?"Finished":(k.before?"Starts in "+cdPl(k.startsIn,"day")+" · ":"")+(k.done?"":cdPl(r.y,"year")+" · "+cdPl(r.m,"month")+" · "+cdPl(r.w,"week")+" · "+cdPl(r.d,"day")+" left");
+      body='<div class="cd-n" aria-live="polite">'+(k.done?"0<small>days</small><em class=\"lf\">left</em>":cdBig(c,k))+'</div><div class="cd-b">'+line+'</div>'+
+        '<div class="cd-p"><div class="bar"><i style="width:'+k.pct.toFixed(1)+'%"></i></div><span>'+Math.round(k.pct)+'%</span></div>';
+    }
+    return '<div class="cd"><div class="cd-h"><input class="ghost" type="text" value="'+esc(c.title)+'" data-f="cd-title" data-id="'+esc(c.id)+'" aria-label="Countdown name"><button class="x" type="button" data-act="cd-del" data-id="'+esc(c.id)+'" aria-label="Delete countdown">×</button></div>'+
+      '<div class="cd-dates"><label>Start <input type="date" value="'+esc(c.start)+'" data-f="cd-start" data-id="'+esc(c.id)+'"></label><label>End <input type="date" value="'+esc(c.end)+'" data-f="cd-end" data-id="'+esc(c.id)+'"></label></div>'+
+      '<div class="tabs" role="tablist" aria-label="Unit">'+tabs+'</div>'+body+'</div>';
+  }).join(""):'<p class="hint" style="margin-top:14px">No countdowns yet. Add one with a start and end date.</p>';
+}
+setInterval(function(){var a=document.activeElement;if(!(a&&a.closest&&a.closest("#cdList")))renderCd()},60000);
 
 /* reorder assignments */
 var drag=null;
