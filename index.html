@@ -501,21 +501,9 @@ select option{background:#141415;color:#e9e7e2}
   <div class="d-sec">
     <h3>Reminders</h3>
     <label class="chkrow"><input type="checkbox" id="rmOn"> Send reminders to my phone</label>
-    <div class="row2">
-      <div class="field"><label for="rmHour">Time</label><select id="rmHour"></select></div>
-    </div>
-    <div class="field"><label>Days</label>
-      <div style="display:flex;flex-wrap:wrap;gap:10px">
-        <label class="chkrow"><input type="checkbox" data-rm-day="1"> Mon</label>
-        <label class="chkrow"><input type="checkbox" data-rm-day="2"> Tue</label>
-        <label class="chkrow"><input type="checkbox" data-rm-day="3"> Wed</label>
-        <label class="chkrow"><input type="checkbox" data-rm-day="4"> Thu</label>
-        <label class="chkrow"><input type="checkbox" data-rm-day="5"> Fri</label>
-        <label class="chkrow"><input type="checkbox" data-rm-day="6"> Sat</label>
-        <label class="chkrow"><input type="checkbox" data-rm-day="7"> Sun</label>
-      </div>
-    </div>
-    <p class="hint">Sent by the GitHub reminder job, which reads these settings from your gist. Set up sync first.</p>
+    <div id="rmRules" style="display:flex;flex-direction:column;gap:12px"></div>
+    <div><button class="btn" id="rmAdd" type="button">Add reminder time</button></div>
+    <p class="hint">Each time sends the types you tick, on the days you tick. Sent by the GitHub reminder job, which reads these settings from your gist. Set up sync first.</p>
   </div>
 
   <div class="d-sec">
@@ -584,7 +572,7 @@ function byDue(a,b){
 }
 function blank(){return {v:1,tv:1,name:"",gv:10,term:{label:"",start:"",end:""},
   widgets:{tasks:true,grades:true,schedule:true,notes:true,countdowns:true,calendar:true},
-  courses:[],schedule:[],tasks:[],grades:[],counts:[],events:[],birthdays:[],calF:{task:true,event:true,bday:true,cd:true,school:true},reminders:{on:false,hour:19,days:[1,2,3,4,5]},cdStyle:"a",gHide:false,notes:""}}
+  courses:[],schedule:[],tasks:[],grades:[],counts:[],events:[],birthdays:[],calF:{task:true,event:true,bday:true,cd:true,school:true},reminders:{on:false,rules:[{id:"r1",hour:19,days:[1,2,3,4,5],types:{task:true,event:true,bday:true,cd:true},taskWindows:[0,1]}]},cdStyle:"a",gHide:false,notes:""}}
 function normalize(d){
   var b=blank();d=d||{};
   b.name=String(d.name||"");
@@ -609,7 +597,8 @@ function normalize(d){
   b.cdStyle=["a","b"].indexOf(d.cdStyle)>=0?d.cdStyle:"a";
   b.gHide=!!d.gHide;
   var rr=d.reminders||{};
-  b.reminders={on:!!rr.on,hour:Math.min(23,Math.max(0,parseInt(rr.hour,10)||19)),days:(Array.isArray(rr.days)?rr.days:[1,2,3,4,5]).map(Number).filter(function(x){return x>=1&&x<=7})};
+  var rulesIn=Array.isArray(rr.rules)?rr.rules:(rr.hour!==undefined?[{hour:rr.hour,days:rr.days,types:null}]:[{hour:19,days:[1,2,3,4,5],types:null}]);
+  b.reminders={on:!!rr.on,rules:rulesIn.map(function(x){var ty=x.types||{};return {id:x.id||uid(),hour:Math.min(23,Math.max(0,parseInt(x.hour,10)||0)),days:(Array.isArray(x.days)?x.days:[1,2,3,4,5]).map(Number).filter(function(v){return v>=1&&v<=7}),types:{task:ty.task!==false,event:ty.event!==false,bday:ty.bday!==false,cd:ty.cd!==false},taskWindows:(Array.isArray(x.taskWindows)?x.taskWindows:[0,1]).map(Number).filter(function(v){return [0,1,3,7].indexOf(v)>=0})}})};
   b.events=(Array.isArray(d.events)?d.events:[]).map(function(v){return {id:v.id||uid(),title:String(v.title||""),date:String(v.date||""),end:String(v.end||""),time:String(v.time||""),timeEnd:String(v.timeEnd||""),skip:Array.isArray(v.skip)?v.skip.map(String):[],repeat:["weekly","monthly","yearly"].indexOf(v.repeat)>=0?v.repeat:"none",color:/^#f5f5bf$/i.test(String(v.color))?"#cbb887":String(v.color||"#cbb887"),notes:String(v.notes||"")}});
   b.birthdays=(Array.isArray(d.birthdays)?d.birthdays:[]).map(function(v){return {id:v.id||uid(),name:String(v.name||""),date:String(v.date||""),skip:Array.isArray(v.skip)?v.skip.map(String):[],color:"#f5f5bf"}});
   b.calF=Object.assign(b.calF,d.calF||{});
@@ -1165,24 +1154,41 @@ fillCalColors();
 
 
 /* reminders settings */
+var RM_TYPES=[["task","Assignments"],["event","Events"],["bday","Birthdays"],["cd","Countdowns"]];
+var RM_DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 function renderRem(){
-  var r=S.reminders;
-  $("#rmOn").checked=!!r.on;
-  $("#rmHour").value=String(r.hour);
-  document.querySelectorAll("[data-rm-day]").forEach(function(cb){cb.checked=r.days.indexOf(+cb.dataset.rmDay)>=0});
+  var rules=S.reminders.rules;
+  $("#rmOn").checked=!!S.reminders.on;
+  $("#rmRules").innerHTML=rules.length?rules.map(function(r){
+    var hs="";for(var h=0;h<24;h++){hs+='<option value="'+h+'"'+(h===r.hour?" selected":"")+'>'+pad(h)+':00</option>'}
+    var ds=RM_DAYS.map(function(n,i){var v=i+1;return '<label class="chkrow"><input type="checkbox" data-id="'+esc(r.id)+'" data-rm="day" data-day="'+v+'"'+(r.days.indexOf(v)>=0?" checked":"")+'> '+n+'</label>'}).join("");
+    var ts=RM_TYPES.map(function(t){return '<label class="chkrow"><input type="checkbox" data-id="'+esc(r.id)+'" data-rm="type" data-t="'+t[0]+'"'+(r.types[t[0]]?" checked":"")+'> '+t[1]+'</label>'}).join("");
+    var WIN=[[0,'Today'],[1,'Tomorrow'],[3,'In 3 days'],[7,'In 7 days']];
+    var wins=r.types.task?'<div><span class="hint" style="display:block;margin:0 0 6px">Assignments due</span><div style="display:flex;flex-wrap:wrap;gap:10px">'+WIN.map(function(w){return '<label class="chkrow"><input type="checkbox" data-id="'+esc(r.id)+'" data-rm="win" data-w="'+w[0]+'"'+((r.taskWindows||[]).indexOf(w[0])>=0?' checked':'')+'> '+w[1]+'</label>'}).join('')+'</div></div>':'';
+    return '<div style="border:1px solid var(--line-2);border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:10px">'+
+      '<div style="display:flex;gap:8px;align-items:center"><select aria-label="Time" data-id="'+esc(r.id)+'" data-rm="hour" style="flex:1">'+hs+'</select><button class="x" type="button" data-rm-del="'+esc(r.id)+'" aria-label="Delete this time">×</button></div>'+
+      '<div><span class="hint" style="display:block;margin:0 0 6px">Days</span><div style="display:flex;flex-wrap:wrap;gap:10px">'+ds+'</div></div>'+
+      '<div><span class="hint" style="display:block;margin:0 0 6px">Send</span><div style="display:flex;flex-wrap:wrap;gap:10px">'+ts+'</div></div>'+wins+'</div>';
+  }).join(""):'<p class="hint">No reminder times yet. Add one below.</p>';
 }
-(function(){
-  var hs="";for(var h=0;h<24;h++){hs+='<option value="'+h+'">'+pad(h)+':00</option>'}
-  $("#rmHour").innerHTML=hs;
-})();
+function rmRule(id){return S.reminders.rules.find(function(r){return r.id===id})}
 $("#rmOn").addEventListener("change",function(e){S.reminders.on=e.target.checked;touch()});
-$("#rmHour").addEventListener("change",function(e){S.reminders.hour=+e.target.value;touch()});
-document.querySelectorAll("[data-rm-day]").forEach(function(cb){
-  cb.addEventListener("change",function(){
-    var v=+cb.dataset.rmDay,a=S.reminders.days.filter(function(x){return x!==v});
-    if(cb.checked)a.push(v);
-    S.reminders.days=a.sort();touch();
-  });
+$("#rmAdd").addEventListener("click",function(){
+  S.reminders.rules.push({id:uid(),hour:19,days:[1,2,3,4,5],types:{task:true,event:true,bday:true,cd:true},taskWindows:[0,1]});
+  renderRem();touch();
+});
+$("#rmRules").addEventListener("change",function(e){
+  var t=e.target,r=rmRule(t.dataset.id);if(!r)return;
+  if(t.dataset.rm==="hour")r.hour=+t.value;
+  else if(t.dataset.rm==="day"){var v=+t.dataset.day;r.days=r.days.filter(function(x){return x!==v});if(t.checked)r.days.push(v);r.days.sort()}
+  else if(t.dataset.rm==="type"){r.types[t.dataset.t]=t.checked;if(t.dataset.t==="task")renderRem()}
+  else if(t.dataset.rm==="win"){var w=+t.dataset.w;r.taskWindows=(r.taskWindows||[]).filter(function(x){return x!==w});if(t.checked)r.taskWindows.push(w);r.taskWindows.sort()}
+  touch();
+});
+$("#rmRules").addEventListener("click",function(e){
+  var b=e.target.closest("[data-rm-del]");if(!b)return;
+  S.reminders.rules=S.reminders.rules.filter(function(r){return r.id!==b.dataset.rmDel});
+  renderRem();touch();
 });
 
 /* reorder assignments */
