@@ -499,6 +499,26 @@ select option{background:#141415;color:#e9e7e2}
   </div>
 
   <div class="d-sec">
+    <h3>Reminders</h3>
+    <label class="chkrow"><input type="checkbox" id="rmOn"> Send reminders to my phone</label>
+    <div class="row2">
+      <div class="field"><label for="rmHour">Time</label><select id="rmHour"></select></div>
+    </div>
+    <div class="field"><label>Days</label>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <label class="chkrow"><input type="checkbox" data-rm-day="1"> Mon</label>
+        <label class="chkrow"><input type="checkbox" data-rm-day="2"> Tue</label>
+        <label class="chkrow"><input type="checkbox" data-rm-day="3"> Wed</label>
+        <label class="chkrow"><input type="checkbox" data-rm-day="4"> Thu</label>
+        <label class="chkrow"><input type="checkbox" data-rm-day="5"> Fri</label>
+        <label class="chkrow"><input type="checkbox" data-rm-day="6"> Sat</label>
+        <label class="chkrow"><input type="checkbox" data-rm-day="7"> Sun</label>
+      </div>
+    </div>
+    <p class="hint">Sent by the GitHub reminder job, which reads these settings from your gist. Set up sync first.</p>
+  </div>
+
+  <div class="d-sec">
     <h3>Courses</h3>
     <div id="courseEd" style="display:flex;flex-direction:column;gap:6px"></div>
     <div><button class="btn" id="addCourse" type="button">Add course</button></div>
@@ -564,7 +584,7 @@ function byDue(a,b){
 }
 function blank(){return {v:1,tv:1,name:"",gv:10,term:{label:"",start:"",end:""},
   widgets:{tasks:true,grades:true,schedule:true,notes:true,countdowns:true,calendar:true},
-  courses:[],schedule:[],tasks:[],grades:[],counts:[],events:[],birthdays:[],calF:{task:true,event:true,bday:true,cd:true,school:true},cdStyle:"a",gHide:false,notes:""}}
+  courses:[],schedule:[],tasks:[],grades:[],counts:[],events:[],birthdays:[],calF:{task:true,event:true,bday:true,cd:true,school:true},reminders:{on:false,hour:19,days:[1,2,3,4,5]},cdStyle:"a",gHide:false,notes:""}}
 function normalize(d){
   var b=blank();d=d||{};
   b.name=String(d.name||"");
@@ -588,6 +608,8 @@ function normalize(d){
   b.counts=(Array.isArray(d.counts)?d.counts:[]).map(function(c){return {id:c.id||uid(),title:String(c.title||""),start:String(c.start||""),end:String(c.end||""),made:String(c.made||cfmt(new Date())),cal:c.cal!==false,fold:!!c.fold,unit:["years","months","weeks","days"].indexOf(c.unit)>=0?c.unit:"days"}});
   b.cdStyle=["a","b"].indexOf(d.cdStyle)>=0?d.cdStyle:"a";
   b.gHide=!!d.gHide;
+  var rr=d.reminders||{};
+  b.reminders={on:!!rr.on,hour:Math.min(23,Math.max(0,parseInt(rr.hour,10)||19)),days:(Array.isArray(rr.days)?rr.days:[1,2,3,4,5]).map(Number).filter(function(x){return x>=1&&x<=7})};
   b.events=(Array.isArray(d.events)?d.events:[]).map(function(v){return {id:v.id||uid(),title:String(v.title||""),date:String(v.date||""),end:String(v.end||""),time:String(v.time||""),timeEnd:String(v.timeEnd||""),skip:Array.isArray(v.skip)?v.skip.map(String):[],repeat:["weekly","monthly","yearly"].indexOf(v.repeat)>=0?v.repeat:"none",color:/^#f5f5bf$/i.test(String(v.color))?"#cbb887":String(v.color||"#cbb887"),notes:String(v.notes||"")}});
   b.birthdays=(Array.isArray(d.birthdays)?d.birthdays:[]).map(function(v){return {id:v.id||uid(),name:String(v.name||""),date:String(v.date||""),skip:Array.isArray(v.skip)?v.skip.map(String):[],color:"#f5f5bf"}});
   b.calF=Object.assign(b.calF,d.calF||{});
@@ -845,7 +867,7 @@ function fillProfile(){
   $("#fStart").value=S.term.start||"";$("#fEnd").value=S.term.end||"";
 }
 function renderAll(){
-  renderHead();renderStats();renderTasks();renderGrades();renderSched();renderCd();fillSelects();applyWidgets();$("#gradeShow").open=!S.gHide;
+  renderHead();renderStats();renderTasks();renderGrades();renderSched();renderCd();renderRem();fillSelects();applyWidgets();$("#gradeShow").open=!S.gHide;
   var nt=$("#notes");if(document.activeElement!==nt)nt.value=S.notes;
   if(!$("#drawer").hidden){fillProfile();renderCourseEd();$("#json").value=JSON.stringify(S,null,2)}
 }
@@ -1140,6 +1162,28 @@ function fillCalColors(){
   sw.innerHTML=CALCOL.map(function(c){return '<button type="button" role="radio" style="--c:'+c[0]+'" aria-label="'+c[1]+'" title="'+c[1]+'" aria-pressed="'+(c[0]===cur)+'" aria-checked="'+(c[0]===cur)+'" data-act="cl-col" data-col="'+c[0]+'"></button>'}).join("");
 }
 fillCalColors();
+
+
+/* reminders settings */
+function renderRem(){
+  var r=S.reminders;
+  $("#rmOn").checked=!!r.on;
+  $("#rmHour").value=String(r.hour);
+  document.querySelectorAll("[data-rm-day]").forEach(function(cb){cb.checked=r.days.indexOf(+cb.dataset.rmDay)>=0});
+}
+(function(){
+  var hs="";for(var h=0;h<24;h++){hs+='<option value="'+h+'">'+pad(h)+':00</option>'}
+  $("#rmHour").innerHTML=hs;
+})();
+$("#rmOn").addEventListener("change",function(e){S.reminders.on=e.target.checked;touch()});
+$("#rmHour").addEventListener("change",function(e){S.reminders.hour=+e.target.value;touch()});
+document.querySelectorAll("[data-rm-day]").forEach(function(cb){
+  cb.addEventListener("change",function(){
+    var v=+cb.dataset.rmDay,a=S.reminders.days.filter(function(x){return x!==v});
+    if(cb.checked)a.push(v);
+    S.reminders.days=a.sort();touch();
+  });
+});
 
 /* reorder assignments */
 var drag=null;
