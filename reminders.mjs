@@ -1,4 +1,5 @@
-// Daily reminder job: reads homeroom.json from your gist and sends a summary to ntfy.
+// Reminder job: runs hourly, reads homeroom.json from your gist, and sends a summary to ntfy
+// at the hour and days set in the dashboard's Customize tab.
 const { GIST_ID, GIST_TOKEN, NTFY_TOPIC } = process.env;
 if (!GIST_ID || !GIST_TOKEN || !NTFY_TOPIC) throw new Error("Missing GIST_ID, GIST_TOKEN or NTFY_TOPIC");
 
@@ -18,6 +19,17 @@ const ymd = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest", yea
 const addDays = (s, n) => { const [y, m, dd] = s.split("-").map(Number); return new Date(Date.UTC(y, m - 1, dd + n)).toISOString().slice(0, 10); };
 const weekday = (s) => { const [y, m, dd] = s.split("-").map(Number); return new Date(Date.UTC(y, m - 1, dd)).getUTCDay(); };
 const days = [["Today", ymd], ["Tomorrow", addDays(ymd, 1)]];
+
+// Scheduled runs only send at the hour and on the days chosen in the dashboard.
+// Manual runs (Run workflow) always send, so you can test.
+if (process.env.GITHUB_EVENT_NAME !== "workflow_dispatch") {
+  const rm = d.reminders || {};
+  const hourNow = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Bucharest", hour: "2-digit", hourCycle: "h23" }).format(new Date()));
+  const isoDay = (weekday(ymd) + 6) % 7 + 1; // Monday = 1 ... Sunday = 7
+  if (!rm.on) { console.log("Reminders are off."); process.exit(0); }
+  if (hourNow !== Number(rm.hour)) { console.log("Not the reminder hour."); process.exit(0); }
+  if (!(rm.days || []).map(Number).includes(isoDay)) { console.log("Not a reminder day."); process.exit(0); }
+}
 
 const courseName = (id) => { const c = (d.courses || []).find((x) => x.id === id); return c ? c.name : ""; };
 const typeLabel = { homework: "Homework", test: "Test", project: "Project", listening: "Listening" };
