@@ -271,7 +271,7 @@ select option{background:#141415;color:#e9e7e2}
 .cl-it small{padding-left:19px}
 .cl-it b{font-weight:500}
 .cl-it small{display:block;font:400 11px var(--mono);color:var(--dim)}
-.cl-xb{background:transparent;border:1px solid var(--line-2);border-radius:5px;color:var(--muted);font:500 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:5px 8px;white-space:nowrap}
+.cl-xb{background:transparent;border:1px solid var(--line-2);border-radius:6px;color:var(--muted);width:34px;height:34px;padding:0;font-size:20px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
 .cl-xb:hover{color:var(--fg);border-color:var(--accent)}
 .cl-xs{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .cl-lab{font:400 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:6px}
@@ -1091,6 +1091,7 @@ var calCur=(function(){var t=new Date();return new Date(t.getFullYear(),t.getMon
 function cfmt(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
 var cadd=function(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n)};
 var cmd=function(d){return (d.getDay()+6)%7};
+var TRASH='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
 function calHits(ev,d){
   var s=parse(ev.date);if(!s||d<s)return false;
   if((ev.skip||[]).indexOf(cfmt(d))>=0)return false;
@@ -1131,7 +1132,7 @@ function renderCal(){
   var sd=parse(calSel),its2=calItems(calSel);
   dp.hidden=false;
   dp.innerHTML='<h3>'+DAYFULL[sd.getDay()]+', '+sd.getDate()+' '+MONTHS[sd.getMonth()]+(calSel===cfmt(td)?" · today":"")+'</h3>'+
-    (its2.length?its2.map(function(x){return '<div class="cl-it" style="--c:'+x.c+'"><div><b><i class="dot"></i>'+esc(x.t)+'</b><small>'+esc(x.sub)+'</small></div>'+(x.k==="event"||x.k==="bday"?(x.rep?'<div class="cl-xs"><button class="cl-xb" type="button" data-act="cl-skip" data-kind="'+x.k+'" data-id="'+esc(x.id)+'">Only this day</button><button class="cl-xb" type="button" data-act="'+(x.k==="event"?"cl-del-ev":"cl-del-bd")+'" data-id="'+esc(x.id)+'">Delete all</button></div>':'<button class="x" type="button" data-act="'+(x.k==="event"?"cl-del-ev":"cl-del-bd")+'" data-id="'+esc(x.id)+'" aria-label="Delete">×</button>'):'<span></span>')+'</div>'}).join(""):'<div class="empty">Nothing planned. Tap the day again to hide this.</div>');
+    (its2.length?its2.map(function(x){return '<div class="cl-it" style="--c:'+x.c+'"><div><b><i class="dot"></i>'+esc(x.t)+'</b><small>'+esc(x.sub)+'</small></div>'+(x.k==="event"||x.k==="bday"?(x.rep?'<div class="cl-xs"><button class="cl-xb" type="button" data-act="cl-skip" data-kind="'+x.k+'" data-id="'+esc(x.id)+'" aria-label="Delete only this day" title="Only this day">×</button><button class="cl-xb" type="button" data-act="'+(x.k==="event"?"cl-del-ev":"cl-del-bd")+'" data-id="'+esc(x.id)+'" aria-label="Delete all repeats" title="Delete all repeats">'+TRASH+'</button></div>':'<button class="x" type="button" data-act="'+(x.k==="event"?"cl-del-ev":"cl-del-bd")+'" data-id="'+esc(x.id)+'" aria-label="Delete">×</button>'):'<span></span>')+'</div>'}).join(""):'<div class="empty">Nothing planned. Tap the day again to hide this.</div>');
 }
 function fillCalColors(){
   var sw=$("#ceSw");if(!sw)return;
