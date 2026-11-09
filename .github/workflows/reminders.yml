@@ -1,0 +1,15 @@
+name: Reminders
+on:
+  schedule:
+    - cron: "0 17 * * *"   # about 19:00 in Romania (20:00 in summer)
+  workflow_dispatch:
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: node reminders.mjs
+        env:
+          GIST_ID: ${{ secrets.GIST_ID }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
