@@ -456,8 +456,7 @@ select option{background:#141415;color:#e9e7e2}
           <summary>Add a birthday</summary>
           <form class="clform" id="clBdForm" autocomplete="off">
             <label class="full">Name<input id="cbN" type="text" required placeholder="Name"></label>
-            <label>Date of birth<input id="cbD" type="date" required></label>
-            <label>Color<select id="cbC"></select></label>
+            <label class="full">Date of birth<input id="cbD" type="date" required></label>
             <div class="full"><button class="btn primary" type="submit">Add birthday</button></div>
           </form>
         </details>
@@ -580,8 +579,8 @@ function normalize(d){
   b.counts=(Array.isArray(d.counts)?d.counts:[]).map(function(c){return {id:c.id||uid(),title:String(c.title||""),start:String(c.start||""),end:String(c.end||""),made:String(c.made||cfmt(new Date())),cal:c.cal!==false,fold:!!c.fold,unit:["years","months","weeks","days"].indexOf(c.unit)>=0?c.unit:"days"}});
   b.cdStyle=["a","b"].indexOf(d.cdStyle)>=0?d.cdStyle:"a";
   b.gHide=!!d.gHide;
-  b.events=(Array.isArray(d.events)?d.events:[]).map(function(v){return {id:v.id||uid(),title:String(v.title||""),date:String(v.date||""),end:String(v.end||""),time:String(v.time||""),repeat:["weekly","monthly","yearly"].indexOf(v.repeat)>=0?v.repeat:"none",color:String(v.color||"#cbb887"),notes:String(v.notes||"")}});
-  b.birthdays=(Array.isArray(d.birthdays)?d.birthdays:[]).map(function(v){return {id:v.id||uid(),name:String(v.name||""),date:String(v.date||""),color:String(v.color||"#c98aa8")}});
+  b.events=(Array.isArray(d.events)?d.events:[]).map(function(v){return {id:v.id||uid(),title:String(v.title||""),date:String(v.date||""),end:String(v.end||""),time:String(v.time||""),repeat:["weekly","monthly","yearly"].indexOf(v.repeat)>=0?v.repeat:"none",color:/^#f5f5bf$/i.test(String(v.color))?"#cbb887":String(v.color||"#cbb887"),notes:String(v.notes||"")}});
+  b.birthdays=(Array.isArray(d.birthdays)?d.birthdays:[]).map(function(v){return {id:v.id||uid(),name:String(v.name||""),date:String(v.date||""),color:"#f5f5bf"}});
   b.calF=Object.assign(b.calF,d.calF||{});
   b.notes=String(d.notes||"");
   b.updatedAt=String(d.updatedAt||"");
@@ -994,7 +993,7 @@ $("#clEvForm").addEventListener("submit",function(e){
 $("#clBdForm").addEventListener("submit",function(e){
   e.preventDefault();
   var n=$("#cbN").value.trim(),d=$("#cbD").value;if(!n||!d)return;
-  S.birthdays.push({id:uid(),name:n,date:d,color:$("#cbC").value});
+  S.birthdays.push({id:uid(),name:n,date:d,color:BDAY});
   $("#cbN").value="";$("#cbD").value="";S.calF.bday=true;renderCal();touch();
 });
 $("#cdForm").addEventListener("submit",function(e){
@@ -1074,6 +1073,7 @@ setInterval(function(){var a=document.activeElement;if(!(a&&a.closest&&a.closest
 
 
 /* calendar */
+var BDAY="#f5f5bf";
 var CALCOL=[["#cbb887","Brown"],["#9a9aa0","Grey"],["#6f9bd1","Blue"],["#9b86c9","Violet"],["#c98aa8","Pink"],["#62b8c9","Cyan"]];
 var calCur=(function(){var t=new Date();return new Date(t.getFullYear(),t.getMonth(),1)})(),calSel=null;
 function cfmt(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
@@ -1093,14 +1093,14 @@ function calItems(ds){
     var e=parse(ev.end),rp=ev.repeat==="weekly"?"Weekly":ev.repeat==="monthly"?"Monthly":ev.repeat==="yearly"?"Yearly":"";
     out.push({k:"event",id:ev.id,t:ev.title,c:ev.color,sub:[ev.time,rp,(e&&ev.repeat==="none")?"until "+e.getDate()+" "+MONTHS[e.getMonth()]:"",ev.notes].filter(Boolean).join(" · ")||"Event",o:ev.time?1:2,time:ev.time})}});
   if(F.bday)S.birthdays.forEach(function(b){var s=parse(b.date);if(s&&d>=s&&s.getDate()===d.getDate()&&s.getMonth()===d.getMonth()){
-    var age=d.getFullYear()-s.getFullYear();out.push({k:"bday",id:b.id,t:b.name+"'s birthday",c:b.color,sub:age>0?"Turns "+age:"Birthday",o:2})}});
+    var age=d.getFullYear()-s.getFullYear();out.push({k:"bday",id:b.id,t:b.name+"'s birthday",c:BDAY,sub:age>0?"Turns "+age:"Birthday",o:2})}});
   if(F.cd)S.counts.forEach(function(c){if(c.cal===false)return;if(c.start===ds)out.push({k:"cd",t:c.title+" starts",c:"#9a9aa0",sub:"Countdown",o:3});if(c.end===ds)out.push({k:"cd",t:c.title+" ends",c:"#9a9aa0",sub:"Countdown",o:3})});
   out.sort(function(a,b){return a.o-b.o||(a.time||"").localeCompare(b.time||"")});
   return out;
 }
 function renderCal(){
   if(!$("#clView"))return;
-  var F=S.calF,L=[["task","Assignments","#d98a3d"],["event","Events","#cbb887"],["bday","Birthdays","#c98aa8"],["cd","Countdowns","#9a9aa0"],["school","School days","#988558"]];
+  var F=S.calF,L=[["task","Assignments","#d98a3d"],["event","Events","#cbb887"],["bday","Birthdays",BDAY],["cd","Countdowns","#9a9aa0"],["school","School days","#988558"]];
   $("#clChips").innerHTML=L.map(function(c){return '<button class="cl-chip" type="button" style="--c:'+c[2]+'" aria-pressed="'+!!F[c[0]]+'" data-act="cl-filter" data-k="'+c[0]+'"><i></i>'+c[1]+'</button>'}).join("");
   var td=sod(new Date());
   $("#clMonth").textContent=["January","February","March","April","May","June","July","August","September","October","November","December"][calCur.getMonth()]+" "+calCur.getFullYear();
@@ -1120,7 +1120,7 @@ function renderCal(){
   dp.innerHTML='<h3>'+DAYFULL[sd.getDay()]+', '+sd.getDate()+' '+MONTHS[sd.getMonth()]+(calSel===cfmt(td)?" · today":"")+'</h3>'+
     (its2.length?its2.map(function(x){return '<div class="cl-it" style="--c:'+x.c+'"><span class="bar"></span><div><b>'+esc(x.t)+'</b><small>'+esc(x.sub)+'</small></div>'+(x.k==="event"||x.k==="bday"?'<button class="x" type="button" data-act="'+(x.k==="event"?"cl-del-ev":"cl-del-bd")+'" data-id="'+esc(x.id)+'" aria-label="Delete">×</button>':'<span></span>')+'</div>'}).join(""):'<div class="empty">Nothing planned. Tap the day again to hide this.</div>');
 }
-function fillCalColors(){["#ceC","#cbC"].forEach(function(s){var el=$(s);if(el&&!el.options.length)el.innerHTML=CALCOL.map(function(c){return '<option value="'+c[0]+'">'+c[1]+'</option>'}).join("")})}
+function fillCalColors(){["#ceC"].forEach(function(s){var el=$(s);if(el&&!el.options.length)el.innerHTML=CALCOL.map(function(c){return '<option value="'+c[0]+'">'+c[1]+'</option>'}).join("")})}
 fillCalColors();
 
 /* reorder assignments */
