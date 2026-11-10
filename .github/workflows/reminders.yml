@@ -1,7 +1,7 @@
 name: Reminders
 on:
   schedule:
-    - cron: "0 * * * *"   # every hour; the script sends only at the hour set in the dashboard
+    - cron: "*/15 * * * *"   # every 15 minutes; each reminder is sent once, at or after its time
   workflow_dispatch:
 jobs:
   remind:
