@@ -1,8 +1,10 @@
 name: Reminders
 on:
+  repository_dispatch:
+    types: [remind]        # triggered every 15 minutes by cron-job.org
   schedule:
-    - cron: "*/15 * * * *"   # every 15 minutes; each reminder is sent once, at or after its time
-  workflow_dispatch:
+    - cron: "*/15 * * * *"  # backup, in case GitHub runs it
+  workflow_dispatch:        # manual test (Run workflow button)
 jobs:
   remind:
     runs-on: ubuntu-latest
@@ -13,3 +15,4 @@ jobs:
           GIST_ID: ${{ secrets.GIST_ID }}
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          
