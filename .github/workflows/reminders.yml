@@ -15,4 +15,3 @@ jobs:
           GIST_ID: ${{ secrets.GIST_ID }}
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
-          
